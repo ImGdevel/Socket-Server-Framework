@@ -1,7 +1,6 @@
 #ifndef SERVER_H
 #define SERVER_H
 
-class Reactor;
 class ThreadPool;
 
 class Server {
@@ -15,7 +14,6 @@ private:
     int workerCount;
     bool isRunning;
 
-    Reactor* reactor;
     ThreadPool* threadPool;
 };
 
