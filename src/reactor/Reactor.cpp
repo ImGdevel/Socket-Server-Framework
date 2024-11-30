@@ -13,6 +13,12 @@ Reactor::Reactor(int port) : port(port), serverSocket(-1), running(false) {
         throw runtime_error("Failed to create socket");
     }
 
+    int opt = 1;
+    if (setsockopt(serverSocket, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt)) < 0) {
+        perror("setsockopt failed");
+        throw runtime_error("Failed to set socket options");
+    }
+
     sockaddr_in serverAddr{};
     serverAddr.sin_family = AF_INET;
     serverAddr.sin_addr.s_addr = INADDR_ANY;
