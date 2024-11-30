@@ -34,8 +34,14 @@ int main() {
     }
     std::cout << "Connected to server at " << SERVER_IP << ":" << SERVER_PORT << std::endl;
 
-    // 4. 서버에 메시지 전송
-    std::string message = "Hello, Server!";
+    // 4. 서버에 메시지 전송 X 3
+    std::string message = "Hello, Server! X 3";
+    if (send(clientSocket, message.c_str(), message.size(), 0) < 0) {
+        errorExit("Failed to send message to server");
+    }
+    if (send(clientSocket, message.c_str(), message.size(), 0) < 0) {
+        errorExit("Failed to send message to server");
+    }
     if (send(clientSocket, message.c_str(), message.size(), 0) < 0) {
         errorExit("Failed to send message to server");
     }
