@@ -2,7 +2,7 @@
 CXX = g++
 CXXFLAGS = -std=c++11 -Wall
 
-TARGET = server
+TARGET = build/server
 
 SRC = main.cpp src/Server.cpp src/reactor/Reactor.cpp
 OBJ = $(SRC:.cpp=.o)
