@@ -3,6 +3,9 @@
 
 #include <vector>
 #include <functional>
+#include <unordered_map>
+
+class ClientSession;
 
 class Reactor {
 public:
@@ -26,6 +29,8 @@ private:
     void acceptConnection();
     void handleClientEvent(int clientSocket);
     void setNonBlocking(int socket);
+
+    std::unordered_map<int, ClientSession*> clientSessions;
 };
 
 #endif

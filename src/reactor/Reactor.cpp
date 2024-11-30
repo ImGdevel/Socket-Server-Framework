@@ -1,4 +1,5 @@
 #include "Reactor.h"
+#include "../session/ClientSession.h"
 #include <iostream>
 #include <sys/socket.h>
 #include <sys/epoll.h>
@@ -115,6 +116,8 @@ void Reactor::acceptConnection() {
 
         cout << "New client connected: " << clientSocket << endl;
         setNonBlocking(clientSocket);
+
+        clientSessions[clientSocket] = new ClientSession(clientSocket);
 
         // 클라이언트 소켓을 epoll에 등록
         epoll_event event{};
