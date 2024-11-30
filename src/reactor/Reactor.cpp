@@ -3,7 +3,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <unistd.h>
-#include <stdexcept>
+#include <fcntl.h>
 
 using namespace std;
 
@@ -25,7 +25,6 @@ void Reactor::setupServerSocket(){
 
     int opt = 1;
     if (setsockopt(serverSocket, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt)) < 0) {
-        perror("setsockopt failed");
         throw runtime_error("Failed to set socket options");
     }
 
@@ -41,11 +40,14 @@ void Reactor::setupServerSocket(){
     if (listen(serverSocket, 10) < 0) {
         throw runtime_error("Failed to listen on socket");
     }
-    running = true;
+
+    setNonBlocking(serverSocket);
 }
 
 void Reactor::start() {
     cout << "Reactor started, waiting for connections..." << endl;
+    running = true;
+
     while (running) {
         acceptConnection();
     }
@@ -63,5 +65,16 @@ void Reactor::acceptConnection() {
     if (clientSocket >= 0) {
         cout << "New client connected!" << endl;
         // todo : 클라이언트 처리 핸들러 등록
+    }
+}
+
+void Reactor::setNonBlocking(int socket) {
+    int flags = fcntl(socket, F_GETFL, 0);
+    if (flags < 0) {
+        throw runtime_error("Failed to get socket flags");
+    }
+
+    if (fcntl(socket, F_SETFL, flags | O_NONBLOCK) < 0) {
+        throw runtime_error("Failed to set socket to non-blocking");
     }
 }

@@ -20,7 +20,8 @@ private:
     
     void setupServerSocket();
     void acceptConnection();
-    
+
+    void setNonBlocking(int socket);
 };
 
 #endif
