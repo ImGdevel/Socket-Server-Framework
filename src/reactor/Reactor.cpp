@@ -8,6 +8,16 @@
 using namespace std;
 
 Reactor::Reactor(int port) : port(port), serverSocket(-1), running(false) {
+    setupServerSocket();
+}
+
+Reactor::~Reactor() {
+    if (serverSocket >= 0) {
+        close(serverSocket);
+    }
+}
+
+void Reactor::setupServerSocket(){
     serverSocket = socket(AF_INET, SOCK_STREAM, 0);
     if (serverSocket < 0) {
         throw runtime_error("Failed to create socket");
@@ -32,12 +42,6 @@ Reactor::Reactor(int port) : port(port), serverSocket(-1), running(false) {
         throw runtime_error("Failed to listen on socket");
     }
     running = true;
-}
-
-Reactor::~Reactor() {
-    if (serverSocket >= 0) {
-        close(serverSocket);
-    }
 }
 
 void Reactor::start() {

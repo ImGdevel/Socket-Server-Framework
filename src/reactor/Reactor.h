@@ -17,7 +17,10 @@ private:
     int serverSocket;
 
     bool running = false;
+    
+    void setupServerSocket();
     void acceptConnection();
+    
 };
 
 #endif
