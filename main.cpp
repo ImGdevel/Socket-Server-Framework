@@ -1,6 +1,7 @@
 #include "src/Server.h"
 #include <iostream>
 #include <string.h>
+#include <signal.h>
 
 using namespace std;
 
@@ -18,8 +19,14 @@ void configureParameters(int argc, char* argv[]) {
     }
 }
 
+// 서버 강제 종료 인터럽트
+void serverShutdownHandler(int sig) {
+    cout << "Server shutdown" << endl;
+}
+
 int main(int argc, char* argv[]) {
     try {
+        signal(SIGINT, serverShutdownHandler);
         configureParameters(argc, argv);
 
         Server server(port, workerCount);
