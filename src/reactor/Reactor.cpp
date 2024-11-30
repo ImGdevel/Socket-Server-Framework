@@ -8,6 +8,7 @@
 #include <fcntl.h>
 #include <cstring>
 #include <stdexcept>
+#include <memory>
 
 using namespace std;
 
@@ -17,6 +18,14 @@ Reactor::Reactor(int port) : port(port), serverSocket(-1), running(false) {
 }
 
 Reactor::~Reactor() {
+    for (auto& [socket, session] : clientSessions) {
+        close(socket);
+    }
+    clientSessions.clear();
+    
+    if(epollFd >= 0){
+        close(epollFd);
+    }
     if (serverSocket >= 0) {
         close(serverSocket);
     }
@@ -117,7 +126,7 @@ void Reactor::acceptConnection() {
         cout << "New client connected: " << clientSocket << endl;
         setNonBlocking(clientSocket);
 
-        clientSessions[clientSocket] = new ClientSession(clientSocket);
+        clientSessions[clientSocket] = make_shared<ClientSession>(clientSocket);
 
         // 클라이언트 소켓을 epoll에 등록
         epoll_event event{};
@@ -125,7 +134,7 @@ void Reactor::acceptConnection() {
         event.data.fd = clientSocket;
         if (epoll_ctl(epollFd, EPOLL_CTL_ADD, clientSocket, &event) < 0) {
             perror("Failed to add client socket to epoll");
-            close(clientSocket);
+            clientSessions.erase(clientSocket);
         }
     }
 }
@@ -142,11 +151,11 @@ void Reactor::handleClientEvent(int clientSocket) {
                 break;
             }
             perror("recv failed");
-            close(clientSocket);
+            clientSessions.erase(clientSocket);
             break;
         } else if (bytesRead == 0) {
             cout << "Client disconnected: " << clientSocket << endl;
-            close(clientSocket);
+            clientSessions.erase(clientSocket);
             break;
         } else {
             cout << "Received: " << string(buffer, bytesRead) << endl;

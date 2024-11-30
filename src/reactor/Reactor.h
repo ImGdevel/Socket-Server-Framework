@@ -4,6 +4,7 @@
 #include <vector>
 #include <functional>
 #include <unordered_map>
+#include <memory>
 
 class ClientSession;
 
@@ -30,7 +31,7 @@ private:
     void handleClientEvent(int clientSocket);
     void setNonBlocking(int socket);
 
-    std::unordered_map<int, ClientSession*> clientSessions;
+    std::unordered_map<int, std::shared_ptr<ClientSession>> clientSessions;
 };
 
 #endif
