@@ -24,7 +24,7 @@ private:
     void setupServerSocket();
     void setupIOMultiplexing();
     void acceptConnection();
-
+    void handleClientEvent(int clientSocket);
     void setNonBlocking(int socket);
 };
 

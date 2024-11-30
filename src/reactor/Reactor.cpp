@@ -83,8 +83,7 @@ void Reactor::start() {
             if (events[i].data.fd == serverSocket) {
                 acceptConnection();
             } else {
-                // todo : 이벤트 헨들러
-                cout << i << "socket event!" << endl;
+                handleClientEvent(events[i].data.fd);
             }
         }
     }
@@ -118,6 +117,31 @@ void Reactor::acceptConnection() {
         if (epoll_ctl(epollFd, EPOLL_CTL_ADD, clientSocket, &event) < 0) {
             perror("Failed to add client socket to epoll");
             close(clientSocket);
+        }
+    }
+}
+
+        
+void Reactor::handleClientEvent(int clientSocket) {
+    char buffer[1024];
+    while (true) {
+        ssize_t bytesRead = recv(clientSocket, buffer, sizeof(buffer), 0);
+        cout << "recv clientSocket: " << clientSocket << ", read = " << bytesRead << endl;
+
+        if (bytesRead < 0) {
+            if (errno == EAGAIN || errno == EWOULDBLOCK) {
+                break;
+            }
+            perror("recv failed");
+            close(clientSocket);
+            break;
+        } else if (bytesRead == 0) {
+            cout << "Client disconnected: " << clientSocket << endl;
+            close(clientSocket);
+            break;
+        } else {
+            cout << "Received: " << string(buffer, bytesRead) << endl;
+            send(clientSocket, buffer, bytesRead, 0);
         }
     }
 }
