@@ -10,11 +10,13 @@ public:
     ~Reactor();
 
     void start();
+    void stop();
 
 private:
     int port;
     int serverSocket;
 
+    bool running = false;
     void acceptConnection();
 };
 

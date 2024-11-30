@@ -7,7 +7,7 @@
 
 using namespace std;
 
-Reactor::Reactor(int port) : port_(port), serverSocket_(-1) {
+Reactor::Reactor(int port) : port(port), serverSocket(-1), running(false) {
     serverSocket = socket(AF_INET, SOCK_STREAM, 0);
     if (serverSocket < 0) {
         throw runtime_error("Failed to create socket");
@@ -25,6 +25,7 @@ Reactor::Reactor(int port) : port_(port), serverSocket_(-1) {
     if (listen(serverSocket, 10) < 0) {
         throw runtime_error("Failed to listen on socket");
     }
+    running = true;
 }
 
 Reactor::~Reactor() {
@@ -35,9 +36,13 @@ Reactor::~Reactor() {
 
 void Reactor::start() {
     cout << "Reactor started, waiting for connections..." << endl;
-    while (true) {
+    while (running) {
         acceptConnection();
     }
+}
+
+void Reactor::stop(){
+    running = false;
 }
 
 void Reactor::acceptConnection() {
