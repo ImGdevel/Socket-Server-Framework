@@ -21,6 +21,7 @@ Reactor::~Reactor() {
     }
 }
 
+// Server Socket 설정
 void Reactor::setupServerSocket(){
     serverSocket = socket(AF_INET, SOCK_STREAM, 0);
     if (serverSocket < 0) {
@@ -48,6 +49,7 @@ void Reactor::setupServerSocket(){
     setNonBlocking(serverSocket);
 }
 
+// I/O Multipexing epoll 설정
 void Reactor::setupIOMultiplexing(){
     epollFd = epoll_create1(0);
     if (epollFd < 0) {
@@ -63,6 +65,8 @@ void Reactor::setupIOMultiplexing(){
     }
 }
 
+
+// 서버 가동
 void Reactor::start() {
     cout << "Reactor started, waiting for connections..." << endl;
     running = true;
@@ -89,10 +93,12 @@ void Reactor::start() {
     }
 }
 
+// 서버 종료
 void Reactor::stop(){
     running = false;
 }
 
+// 클라이언트 연결
 void Reactor::acceptConnection() {
     while (true) {
         sockaddr_in clientAddr{};
@@ -121,7 +127,7 @@ void Reactor::acceptConnection() {
     }
 }
 
-        
+// 클라이언트 메시지 수신
 void Reactor::handleClientEvent(int clientSocket) {
     char buffer[1024];
     while (true) {
@@ -146,6 +152,7 @@ void Reactor::handleClientEvent(int clientSocket) {
     }
 }
 
+// Non-Blocking 설정
 void Reactor::setNonBlocking(int socket) {
     int flags = fcntl(socket, F_GETFL, 0);
     if (flags < 0) {
