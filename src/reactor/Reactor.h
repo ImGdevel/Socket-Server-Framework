@@ -15,10 +15,14 @@ public:
 private:
     int port;
     int serverSocket;
+    int epollFd;
+
+    static const int MAX_EVENTS = 1024;
 
     bool running = false;
     
     void setupServerSocket();
+    void setupIOMultiplexing();
     void acceptConnection();
 
     void setNonBlocking(int socket);
