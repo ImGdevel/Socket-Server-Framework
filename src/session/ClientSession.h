@@ -2,6 +2,7 @@
 #define CLIENT_SESSION_H
 
 #include <string> 
+#include <vector>
 
 class ClientSession {
 public:
@@ -22,7 +23,7 @@ private:
     bool active;
     
     // 수신 버퍼
-    std::string receiveBuffer;
+    std::vector<char> receiveBuffer;
 };
 
 #endif
