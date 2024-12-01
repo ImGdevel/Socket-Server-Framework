@@ -91,8 +91,7 @@ void Reactor::start() {
             if (errno == EINTR) {
                 continue;
             }
-            perror("epoll_wait failed");
-            break;
+            throw std::runtime_error("epoll_wait failed");
         }
 
         for (int i = 0; i < eventCount; ++i) {
@@ -136,7 +135,9 @@ void Reactor::acceptConnection() {
         event.data.fd = clientSocket;
         if (epoll_ctl(epollFd, EPOLL_CTL_ADD, clientSocket, &event) < 0) {
             perror("Failed to add client socket to epoll");
-            clientSessions.erase(clientSocket);
+            if (clientSessions.find(clientSocket) != clientSessions.end()) {
+                clientSessions.erase(clientSocket);
+            }
         }
     }
 }

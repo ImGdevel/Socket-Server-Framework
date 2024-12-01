@@ -1,6 +1,5 @@
 #include "Server.h"
 #include <iostream>
-#include <signal.h>
 #include <memory>
 
 using namespace std;
@@ -26,9 +25,8 @@ Server* Server::getInstance(int port, int workerCount) {
 void Server::run() {
     std::cout << "Server is starting on port " << port 
                 << " with " << workerCount << " workers." << std::endl;
-                
-    reactor->start();
 
+    reactor->start();
 }
 
 void Server::terminate(){
