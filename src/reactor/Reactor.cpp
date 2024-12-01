@@ -145,35 +145,43 @@ void Reactor::acceptConnection() {
 // 클라이언트 메시지 수신
 void Reactor::handleClientEvent(int clientSocket) {
     char buffer[1024];
-    while (true) {
-        ssize_t bytesRead = recv(clientSocket, buffer, sizeof(buffer), 0);
-        cout << "recv clientSocket: " << clientSocket << ", read = " << bytesRead << endl;
 
-        if (bytesRead < 0) {
-            if (errno == EAGAIN || errno == EWOULDBLOCK) {
-                break;
-            }
-            perror("recv failed");
-            clientSessions.erase(clientSocket);
-            break;
-        } else if (bytesRead == 0) {
-            cout << "Client disconnected: " << clientSocket << endl;
-            clientSessions.erase(clientSocket);
-            break;
-        } else {
-            auto session = clientSessions[clientSocket];
-            session->appendToBuffer(buffer, bytesRead);
-
-            std::string message;
-            while (session->extractMessage(message)) {
-                threadPool.enqueueTask([this, message, clientSocket]() {
-                    cout << clientSocket << " socket event! send message:" << message << endl; 
-                    std::string response = "Echo: " + message;
-                    send(clientSocket, response.data(), response.size(), 0);
-                });
-            }    
-        }
+    auto sessionIter = clientSessions.find(clientSocket);
+    if (sessionIter == clientSessions.end()) {
+        close(clientSocket);
+        return;
     }
+    auto& session = sessionIter->second;
+
+    ssize_t bytesRead = recv(clientSocket, buffer, sizeof(buffer), 0);
+    cout << "recv clientSocket: " << clientSocket << ", read = " << bytesRead << endl;
+
+    if (bytesRead < 0) {
+        if (errno == EAGAIN || errno == EWOULDBLOCK) {
+            return;
+        }
+        perror("recv failed");
+        epoll_ctl(epollFd, EPOLL_CTL_DEL, clientSocket, nullptr); 
+        clientSessions.erase(clientSocket);
+        return;
+    } else if (bytesRead == 0) {
+        cout << "Client disconnected: " << clientSocket << endl;
+        epoll_ctl(epollFd, EPOLL_CTL_DEL, clientSocket, nullptr); 
+        clientSessions.erase(clientSocket);
+        return;
+    } else {
+        session->appendToBuffer(buffer, bytesRead);
+
+        std::string message;
+        while (session->extractMessage(message)) {
+            threadPool.enqueueTask([this, message, clientSocket]() {
+                cout << clientSocket << " socket event! send message:" << message << endl; 
+                std::string response = "Echo: " + message;
+                send(clientSocket, response.data(), response.size(), 0);
+            });
+        }    
+    }
+    
 }
 
 // Non-Blocking 설정
