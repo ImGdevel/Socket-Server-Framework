@@ -1,13 +1,12 @@
 #include "ClientSession.h"
 #include <unistd.h>
-#include <stdexcept>
 #include <iostream>
 
 using namespace std;
 
 ClientSession::ClientSession(int socket) : clientSocket(socket) {
     if(clientSocket < 0){
-        throw std::runtime_error("Invalid clinet socket");
+        throw runtime_error("Invalid clinet socket");
     }
 }
 
@@ -23,7 +22,7 @@ void ClientSession::appendToBuffer(const char* data, size_t size) {
     receiveBuffer.append(data, size);
 }
 
-std::string& ClientSession::getBuffer() {
+string& ClientSession::getBuffer() {
     return receiveBuffer;
 }
 
