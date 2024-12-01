@@ -1,5 +1,6 @@
 #include "Reactor.h"
 #include "../session/ClientSession.h"
+#include "../threadpool/ThreadPool.h"
 #include <iostream>
 #include <sys/socket.h>
 #include <sys/epoll.h>
@@ -15,6 +16,8 @@ using namespace std;
 Reactor::Reactor(int port) : port(port), serverSocket(-1), running(false) {
     setupServerSocket();
     setupIOMultiplexing();
+
+    threadPool = new ThreadPool(10);
 }
 
 Reactor::~Reactor() {
@@ -158,8 +161,17 @@ void Reactor::handleClientEvent(int clientSocket) {
             clientSessions.erase(clientSocket);
             break;
         } else {
+            // todo : 클라이언트 세션별로 버퍼를 저장하고 정상적으로 메시지가 수신되었다면 WorkerQueue에 전달한다.
+            
+            // 임시 Echo server 테스트
             cout << "Received: " << string(buffer, bytesRead) << endl;
-            send(clientSocket, buffer, bytesRead, 0);
+            string message(buffer, bytesRead);
+
+            threadPool->enqueueTask([this, message, clientSocket]() {
+                cout << clientSocket << "Socket task..." << endl;
+                send(clientSocket, message.c_str(), message.length(), 0);
+            });
+            
         }
     }
 }

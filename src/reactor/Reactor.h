@@ -7,6 +7,7 @@
 #include <memory>
 
 class ClientSession;
+class ThreadPool;
 
 class Reactor {
 public:
@@ -32,6 +33,7 @@ private:
     void setNonBlocking(int socket);
 
     std::unordered_map<int, std::shared_ptr<ClientSession>> clientSessions;
+    ThreadPool* threadPool;
 };
 
 #endif
