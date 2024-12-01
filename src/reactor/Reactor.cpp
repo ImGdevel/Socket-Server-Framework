@@ -161,17 +161,15 @@ void Reactor::handleClientEvent(int clientSocket) {
             clientSessions.erase(clientSocket);
             break;
         } else {
-            // todo : 클라이언트 세션별로 버퍼를 저장하고 정상적으로 메시지가 수신되었다면 WorkerQueue에 전달한다.
-            
-            // 임시 Echo server 테스트
-            cout << "Received: " << string(buffer, bytesRead) << endl;
-            string message(buffer, bytesRead);
+            auto session = clientSessions[clientSocket];
+            session->appendToBuffer(buffer, bytesRead);
 
-            threadPool->enqueueTask([this, message, clientSocket]() {
-                cout << clientSocket << "Socket task..." << endl;
-                send(clientSocket, message.c_str(), message.length(), 0);
-            });
-            
+            std::string message;
+            while (session->extractMessage(message)) {
+                threadPool->enqueueTask([this, message, clientSocket]() {
+                    // todo : 이벤트 처리
+                });
+            }    
         }
     }
 }

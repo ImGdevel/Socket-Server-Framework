@@ -1,7 +1,7 @@
 #ifndef CLIENT_SESSION_H
 #define CLIENT_SESSION_H
 
-#include <string>
+#include <string> 
 
 class ClientSession {
 public:
@@ -9,11 +9,12 @@ public:
     ~ClientSession();
 
     void appendToBuffer(const char* data, size_t size);
-    std::string& getBuffer();
-
+    bool extractMessage(std::string& message);
+    
     int getSocket() const;
     bool isActive() const;
     void closeSession();
+    
 
 private:
     // 클라이언트 정보
