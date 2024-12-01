@@ -6,7 +6,7 @@
 
 using namespace std;
 
-ClientSession::ClientSession(int socket) : clientSocket(socket) {
+ClientSession::ClientSession(int socket) : clientSocket(socket), active(true) {
     if(clientSocket < 0){
         throw runtime_error("Invalid clinet socket");
     }

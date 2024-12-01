@@ -167,6 +167,7 @@ void Reactor::handleClientEvent(int clientSocket) {
             std::string message;
             while (session->extractMessage(message)) {
                 threadPool->enqueueTask([this, message, clientSocket]() {
+                    cout << clientSocket << " socket event! send message:" << message << endl; 
                     std::string response = "Echo: " + message;
                     send(clientSocket, response.data(), response.size(), 0);
                 });
