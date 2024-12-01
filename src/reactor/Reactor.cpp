@@ -167,7 +167,8 @@ void Reactor::handleClientEvent(int clientSocket) {
             std::string message;
             while (session->extractMessage(message)) {
                 threadPool->enqueueTask([this, message, clientSocket]() {
-                    // todo : 이벤트 처리
+                    std::string response = "Echo: " + message;
+                    send(clientSocket, response.data(), response.size(), 0);
                 });
             }    
         }
