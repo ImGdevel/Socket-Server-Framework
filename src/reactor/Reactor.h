@@ -11,7 +11,7 @@ class ThreadPool;
 
 class Reactor {
 public:
-    explicit Reactor(int port);
+    explicit Reactor(int port, ThreadPool& threadPool); 
     ~Reactor();
 
     void start();
@@ -33,7 +33,7 @@ private:
     void setNonBlocking(int socket);
 
     std::unordered_map<int, std::shared_ptr<ClientSession>> clientSessions;
-    ThreadPool* threadPool;
+    ThreadPool& threadPool;
 };
 
 #endif

@@ -2,6 +2,7 @@
 #define SERVER_H
 
 #include "reactor/Reactor.h"
+#include "threadpool/ThreadPool.h"
 
 class Server {
 public:
@@ -19,7 +20,8 @@ private:
     int port;
     int workerCount;
 
-    Reactor* reactor;
+    std::unique_ptr<Reactor> reactor; 
+    std::unique_ptr<ThreadPool> threadPool;
     
     Server(int port, int workerCount);
 

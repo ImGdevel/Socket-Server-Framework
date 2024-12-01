@@ -13,11 +13,10 @@
 
 using namespace std;
 
-Reactor::Reactor(int port) : port(port), serverSocket(-1), running(false) {
+Reactor::Reactor(int port, ThreadPool& threadPool) 
+        : port(port), serverSocket(-1), running(false), threadPool(threadPool) {
     setupServerSocket();
     setupIOMultiplexing();
-
-    threadPool = new ThreadPool(10);
 }
 
 Reactor::~Reactor() {
@@ -166,7 +165,7 @@ void Reactor::handleClientEvent(int clientSocket) {
 
             std::string message;
             while (session->extractMessage(message)) {
-                threadPool->enqueueTask([this, message, clientSocket]() {
+                threadPool.enqueueTask([this, message, clientSocket]() {
                     cout << clientSocket << " socket event! send message:" << message << endl; 
                     std::string response = "Echo: " + message;
                     send(clientSocket, response.data(), response.size(), 0);

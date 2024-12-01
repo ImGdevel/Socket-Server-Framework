@@ -1,19 +1,19 @@
 #include "Server.h"
 #include <iostream>
 #include <signal.h>
+#include <memory>
 
 using namespace std;
 
 Server* Server::instance = nullptr;
 
 Server::Server(int port, int workerCount) : port(port), workerCount(workerCount) {
-    reactor = new Reactor(port);
+    threadPool = make_unique<ThreadPool>(workerCount);
+    reactor = make_unique<Reactor>(port, *threadPool);
 }
 
 Server::~Server() {
-    if(reactor != nullptr){
-        delete reactor;
-    }
+    terminate();
 }
 
 Server* Server::getInstance(int port, int workerCount) {
@@ -34,8 +34,10 @@ void Server::run() {
 void Server::terminate(){
     if(reactor != nullptr){
         reactor->stop();
-        delete reactor;
         reactor = nullptr;
+    }
+    if (threadPool != nullptr) {
+        threadPool = nullptr;
     }
     cout << "Server shutdown" << endl;
 }
