@@ -12,6 +12,8 @@ public:
     void appendToBuffer(const char* data, size_t size);
     bool extractMessage(std::string& message);
     
+    void sendMessage(const std::string& message);
+
     int getSocket() const;
     bool isActive() const;
     void closeSession();

@@ -28,6 +28,17 @@ bool ClientSession::isActive() const {
     return active;
 }
 
+void ClientSession::sendMessage(const std::string& message) {
+    uint32_t messageSize = htonl(static_cast<uint32_t>(message.size()));
+
+    std::string sendBuffer(reinterpret_cast<char*>(&messageSize), sizeof(messageSize));
+    sendBuffer += message;
+
+    if (send(clientSocket, sendBuffer.c_str(), sendBuffer.size(), 0) < 0) {
+        throw std::runtime_error("Failed to send message");
+    }
+}
+
 void ClientSession::closeSession() {
     if (active) {
         close(clientSocket);

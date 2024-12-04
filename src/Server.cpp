@@ -7,8 +7,17 @@ using namespace std;
 Server* Server::instance = nullptr;
 
 Server::Server(int port, int workerCount) : port(port), workerCount(workerCount) {
+
+    eventHandler.registerHandler("echo", [](std::shared_ptr<ClientSession> session, const std::string& message) {
+        if (session) {
+            std::string echoMessage = "Echo: " + message;
+            cout << "send message : " << echoMessage << endl;
+            session->sendMessage(echoMessage);
+        }
+    });
+
     threadPool = make_unique<ThreadPool>(workerCount);
-    reactor = make_unique<Reactor>(port, *threadPool);
+    reactor = make_unique<Reactor>(port, *threadPool, eventHandler);
 }
 
 Server::~Server() {

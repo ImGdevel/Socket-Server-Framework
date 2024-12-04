@@ -22,6 +22,7 @@ private:
 
     std::unique_ptr<Reactor> reactor; 
     std::unique_ptr<ThreadPool> threadPool;
+    EventHandler eventHandler;
     
     Server(int port, int workerCount);
 

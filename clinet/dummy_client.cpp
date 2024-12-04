@@ -4,7 +4,7 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 
-#define SERVER_PORT 8080
+#define SERVER_PORT 40114
 #define SERVER_IP "127.0.0.1"
 #define BUFFER_SIZE 1024
 
@@ -61,7 +61,7 @@ int main() {
     std::cout << "Connected to server at " << SERVER_IP << ":" << SERVER_PORT << std::endl;
 
     // 4. 서버에 메시지 전송 (길이 헤더 포함)
-    std::string message = "Hello, Server!";
+    std::string message = "echo:Hello, Server!";
     uint32_t messageLength = htonl(message.size()); // 네트워크 바이트 순서로 변환
 
     // 송신 데이터 준비: [길이 헤더(4바이트)] + [메시지]
