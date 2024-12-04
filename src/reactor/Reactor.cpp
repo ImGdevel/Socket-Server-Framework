@@ -162,11 +162,13 @@ void Reactor::handleClientEvent(int clientSocket) {
         }
         perror("recv failed");
         epoll_ctl(epollFd, EPOLL_CTL_DEL, clientSocket, nullptr); 
+        session->closeSession();
         clientSessions.erase(clientSocket);
         return;
     } else if (bytesRead == 0) {
         cout << "Client disconnected: " << clientSocket << endl;
-        epoll_ctl(epollFd, EPOLL_CTL_DEL, clientSocket, nullptr); 
+        epoll_ctl(epollFd, EPOLL_CTL_DEL, clientSocket, nullptr);
+        session->closeSession();
         clientSessions.erase(clientSocket);
         return;
     } else {
