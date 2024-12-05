@@ -8,13 +8,7 @@ Server* Server::instance = nullptr;
 
 Server::Server(int port, int workerCount) : port(port), workerCount(workerCount) {
 
-    eventHandler.registerHandler("echo", [](std::shared_ptr<ClientSession> session, const std::string& message) {
-        if (session) {
-            std::string echoMessage = "Echo: " + message;
-            cout << "send message : " << echoMessage << endl;
-            session->sendMessage(echoMessage);
-        }
-    });
+    eventHandler.registerHandler("echo", echoHandler);
 
     threadPool = make_unique<ThreadPool>(workerCount);
     reactor = make_unique<Reactor>(port, *threadPool, eventHandler);
@@ -47,4 +41,12 @@ void Server::terminate(){
         threadPool = nullptr;
     }
     cout << "Server shutdown" << endl;
+}
+
+void echoHandler(shared_ptr<ClientSession> session, const string& message) {
+    if (session) {
+        string echoMessage = "Echo: " + message;
+        cout << "send message : " << echoMessage << endl;
+        session->sendMessage(echoMessage);
+    }
 }

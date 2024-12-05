@@ -9,18 +9,15 @@ void EventHandler::registerHandler(const string& type, HandlerFnc handler) {
 
 void EventHandler::handleEvent(const std::shared_ptr<ClientSession>& session, const string& message) {
 
-    cout << "message Type: " << message << endl;
-
     auto delimiterPos = message.find(":");
     if (delimiterPos == string::npos) {
         cerr << "Invalid message format: " << message << endl;
         return;
     }
-
     string type = message.substr(0, delimiterPos);
     string content = message.substr(delimiterPos + 1);
 
-    cout << "type: " << type << " message: " << message << endl;
+    cout << session->getSocket() << " socket event! > event type: " << type << " event message: " << message << endl;
 
     auto it = handlers.find(type);
     if (it != handlers.end()) {
