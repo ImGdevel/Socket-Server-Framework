@@ -6,7 +6,7 @@
 
 using namespace std;
 
-ClientSession::ClientSession(int socket) : clientSocket(socket), active(true) {
+ClientSession::ClientSession(int socket) : clientSocket(socket), active(true), processing(false) {
     if(clientSocket < 0){
         throw runtime_error("Invalid clinet socket");
     }
@@ -26,6 +26,14 @@ void ClientSession::appendToBuffer(const char* data, size_t size) {
 
 bool ClientSession::isActive() const {
     return active;
+}
+
+void ClientSession::setProcessing(bool state){
+    processing = state;
+}
+
+bool ClientSession::isProcessing() const{
+    return processing;
 }
 
 void ClientSession::sendMessage(const std::string& message) {

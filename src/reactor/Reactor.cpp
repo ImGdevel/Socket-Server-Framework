@@ -91,7 +91,7 @@ void Reactor::start() {
             if (errno == EINTR) {
                 continue;
             }
-            throw std::runtime_error("epoll_wait failed");
+            throw runtime_error("epoll_wait failed");
         }
 
         for (int i = 0; i < eventCount; ++i) {
@@ -175,11 +175,18 @@ void Reactor::handleClientEvent(int clientSocket) {
         return;
     } else {
         session->appendToBuffer(buffer, bytesRead);
+        
+        // 프로세싱 로직 수정, 세션 큐에 작업을 저장한뒤 빼는 방법도 고려해볼만 하다.
+        if(!session->isProcessing()){
+            return;
+        }
+        session->setProcessing(true);
     
-        std::string message;
+        string message;
         while (session->extractMessage(message)) {
-            threadPool.enqueueTask([this, message, session]() {
+            threadPool.enqueueTask([this, session, message]() {
                 eventHandler.handleEvent(session, message);
+                session->setProcessing(false);
             });
         }
     }

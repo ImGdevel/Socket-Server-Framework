@@ -16,6 +16,8 @@ public:
 
     int getSocket() const;
     bool isActive() const;
+    void setProcessing(bool state);
+    bool isProcessing() const;
     void closeSession();
     
 
@@ -23,7 +25,8 @@ private:
     // 클라이언트 정보
     int clientSocket;
     bool active;
-    
+    bool processing;
+
     // 수신 버퍼
     std::vector<char> receiveBuffer;
 
