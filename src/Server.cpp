@@ -6,6 +6,14 @@ using namespace std;
 
 Server* Server::instance = nullptr;
 
+void echoHandler(shared_ptr<ClientSession> session, const string& message) {
+    if (session) {
+        string echoMessage = "Echo: " + message;
+        cout << "send message : " << echoMessage << endl;
+        session->sendMessage(echoMessage);
+    }
+}
+
 Server::Server(int port, int workerCount) : port(port), workerCount(workerCount) {
 
     eventHandler.registerHandler("echo", echoHandler);
@@ -43,10 +51,3 @@ void Server::terminate(){
     cout << "Server shutdown" << endl;
 }
 
-void echoHandler(shared_ptr<ClientSession> session, const string& message) {
-    if (session) {
-        string echoMessage = "Echo: " + message;
-        cout << "send message : " << echoMessage << endl;
-        session->sendMessage(echoMessage);
-    }
-}
