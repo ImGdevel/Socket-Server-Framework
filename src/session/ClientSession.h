@@ -26,6 +26,9 @@ private:
     
     // 수신 버퍼
     std::vector<char> receiveBuffer;
+
+    // todo : 소캣 종료 Flag와 소캣 정리 기능 구현
+    // bool isClosed
 };
 
 #endif

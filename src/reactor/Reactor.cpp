@@ -164,12 +164,14 @@ void Reactor::handleClientEvent(int clientSocket) {
         epoll_ctl(epollFd, EPOLL_CTL_DEL, clientSocket, nullptr); 
         session->closeSession();
         clientSessions.erase(clientSocket);
+        // todo : 종료된 세션을 안전하게 종료시킬 수 있도록 할 것
         return;
     } else if (bytesRead == 0) {
         cout << "Client disconnected: " << clientSocket << endl;
         epoll_ctl(epollFd, EPOLL_CTL_DEL, clientSocket, nullptr);
         session->closeSession();
         clientSessions.erase(clientSocket);
+        // todo : 종료된 세션을 안전하게 종료시킬 수 있도록 할 것
         return;
     } else {
         session->appendToBuffer(buffer, bytesRead);
