@@ -17,7 +17,7 @@ void EventHandler::handleEvent(const std::shared_ptr<ClientSession>& session, co
     string type = message.substr(0, delimiterPos);
     string content = message.substr(delimiterPos + 1);
 
-    cout << session->getSocket() << " socket event! > event type: " << type << " event message: " << message << endl;
+    cout << session->getSocket() << " socket event! >> type: " << type << " | message: " << content << endl;
 
     auto it = handlers.find(type);
     if (it != handlers.end()) {

@@ -177,13 +177,13 @@ void Reactor::handleClientEvent(int clientSocket) {
         session->appendToBuffer(buffer, bytesRead);
         
         // 프로세싱 로직 수정, 세션 큐에 작업을 저장한뒤 빼는 방법도 고려해볼만 하다.
-        if(!session->isProcessing()){
+        if(session->isProcessing()){
             return;
         }
-        session->setProcessing(true);
-    
+
         string message;
-        while (session->extractMessage(message)) {
+        if (session->extractMessage(message)) {
+            session->setProcessing(true);
             threadPool.enqueueTask([this, session, message]() {
                 eventHandler.handleEvent(session, message);
                 session->setProcessing(false);
