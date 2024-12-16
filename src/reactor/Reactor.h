@@ -5,14 +5,14 @@
 #include <functional>
 #include <unordered_map>
 #include <memory>
-#include "EventHandler.h"
+#include "MessageDispatcher.h"
 
 class ClientSession;
 class ThreadPool;
 
 class Reactor {
 public:
-    explicit Reactor(int port, ThreadPool& threadPool, EventHandler eventHandler); 
+    explicit Reactor(int port, ThreadPool& threadPool, MessageDispatcher messageDispatcher); 
     ~Reactor();
 
     void start();
@@ -35,7 +35,7 @@ private:
 
     std::unordered_map<int, std::shared_ptr<ClientSession>> clientSessions;
     ThreadPool& threadPool;
-    EventHandler eventHandler;
+    MessageDispatcher messageDispatcher;
 };
 
 #endif

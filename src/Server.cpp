@@ -16,10 +16,10 @@ void echoHandler(shared_ptr<ClientSession> session, const string& message) {
 
 Server::Server(int port, int workerCount) : port(port), workerCount(workerCount) {
 
-    eventHandler.registerHandler("echo", echoHandler);
+    messageDispatcher.registerHandler("echo", echoHandler);
 
     threadPool = make_unique<ThreadPool>(workerCount);
-    reactor = make_unique<Reactor>(port, *threadPool, eventHandler);
+    reactor = make_unique<Reactor>(port, *threadPool, messageDispatcher);
 }
 
 Server::~Server() {

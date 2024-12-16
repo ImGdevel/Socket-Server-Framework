@@ -1,13 +1,13 @@
-#include "EventHandler.h"
+#include "MessageDispatcher.h"
 #include <iostream>
 
 using namespace std;
 
-void EventHandler::registerHandler(const string& type, HandlerFnc handler) {
+void MessageDispatcher::registerHandler(const string& type, HandlerFnc handler) {
     handlers[type] = handler;
 }
 
-void EventHandler::handleEvent(const std::shared_ptr<ClientSession>& session, const string& message) {
+void MessageDispatcher::handleEvent(const std::shared_ptr<ClientSession>& session, const string& message) {
 
     auto delimiterPos = message.find(":");
     if (delimiterPos == string::npos) {

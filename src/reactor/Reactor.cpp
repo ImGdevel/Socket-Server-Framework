@@ -13,8 +13,8 @@
 
 using namespace std;
 
-Reactor::Reactor(int port, ThreadPool& threadPool, EventHandler eventHandler) 
-        : port(port), serverSocket(-1), running(false), threadPool(threadPool), eventHandler(eventHandler) {
+Reactor::Reactor(int port, ThreadPool& threadPool, MessageDispatcher messageDispatcher) 
+        : port(port), serverSocket(-1), running(false), threadPool(threadPool), messageDispatcher(messageDispatcher) {
     setupServerSocket();
     setupIOMultiplexing();
 }
@@ -185,7 +185,7 @@ void Reactor::handleClientEvent(int clientSocket) {
         if (session->extractMessage(message)) {
             session->setProcessing(true);
             threadPool.enqueueTask([this, session, message]() {
-                eventHandler.handleEvent(session, message);
+                messageDispatcher.handleEvent(session, message);
                 session->setProcessing(false);
             });
         }
