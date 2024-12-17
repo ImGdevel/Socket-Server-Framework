@@ -1,4 +1,6 @@
 #include "Server.h"
+#include "dispatcher/HandlerConfigurator.h"
+#include "handler/EventHandler.h"
 #include <iostream>
 #include <memory>
 
@@ -15,7 +17,8 @@ void echoHandler(shared_ptr<ClientSession> session, const string& message) {
 }
 
 Server::Server(int port, int workerCount) : port(port), workerCount(workerCount) {
-
+    EventHandler handler;
+    HandlerConfigurator::registerHandlers(messageDispatcher, handler);
 
     threadPool = make_unique<ThreadPool>(workerCount);
     reactor = make_unique<Reactor>(port, *threadPool, messageDispatcher);

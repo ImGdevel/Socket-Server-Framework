@@ -4,7 +4,7 @@ CXXFLAGS = -std=c++17 -Wall
 
 TARGET = build/server
 
-SRC = main.cpp src/Server.cpp src/reactor/Reactor.cpp src/reactor/Worker.cpp src/session/ClientSession.cpp src/threadpool/ThreadPool.cpp src/dispatcher/MessageDispatcher.cpp
+SRC = main.cpp src/Server.cpp src/reactor/Reactor.cpp src/reactor/Worker.cpp src/session/ClientSession.cpp src/threadpool/ThreadPool.cpp src/dispatcher/MessageDispatcher.cpp src/dispatcher/HandlerConfigurator.cpp src/handler/EventHandler.cpp
 OBJ = $(SRC:.cpp=.o)
 
 $(TARGET): $(OBJ)
