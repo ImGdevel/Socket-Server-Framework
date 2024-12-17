@@ -15,11 +15,17 @@ static int port = DEFAULT_PORT;
 static int workerCount = DEFAULT_WORKER_COUNT;
 
 void configureParameters(int argc, char* argv[]);
-void serverShutdownHandler(int sig);
 
 int main(int argc, char* argv[]) {
     try {
-        signal(SIGINT, serverShutdownHandler);
+        signal(SIGINT, [](int sig) {
+            Server* server = Server::getInstance(0, 0);
+            if (server != nullptr) {
+                server->terminate();
+            }
+            exit(EXIT_SUCCESS);
+        });
+        
         configureParameters(argc, argv);
         Server* server = Server::getInstance(port, workerCount);
         server->run();
@@ -59,13 +65,4 @@ void configureParameters(int argc, char* argv[]) {
             exit(EXIT_FAILURE);
         }
     }
-}
-
-// 서버 강제 종료 인터럽트 핸들러
-void serverShutdownHandler(int sig) {
-    Server* server = Server::getInstance(0, 0);
-    if (server != nullptr) {
-        server->terminate();
-    }
-    exit(EXIT_SUCCESS);
 }
