@@ -1,7 +1,6 @@
 #include "src/Server.h"
 #include <iostream>
 #include <string>
-#include <cstring>
 #include <csignal>
 #include <cstdlib>
 #include <stdexcept>
@@ -14,10 +13,12 @@ constexpr int DEFAULT_WORKER_COUNT = 10;
 static int port = DEFAULT_PORT;
 static int workerCount = DEFAULT_WORKER_COUNT;
 
-void configureParameters(int argc, char* argv[]);
+void printHelp();
+bool configureParameters(int argc, char* argv[]);
 
 int main(int argc, char* argv[]) {
     try {
+        // 서버 종료 시그널
         signal(SIGINT, [](int sig) {
             Server* server = Server::getInstance(0, 0);
             if (server != nullptr) {
@@ -25,8 +26,13 @@ int main(int argc, char* argv[]) {
             }
             exit(EXIT_SUCCESS);
         });
-        
-        configureParameters(argc, argv);
+
+        // 서버 파라미터
+        if (!configureParameters(argc, argv)) {
+            return EXIT_FAILURE;
+        }
+
+        // 서버 애플리케이션 실행
         Server* server = Server::getInstance(port, workerCount);
         server->run();
 
@@ -37,32 +43,52 @@ int main(int argc, char* argv[]) {
     return EXIT_SUCCESS;
 }
 
+// 서버 파라미터 help
+void printHelp() {
+    cout << "Server Application Help\n\n"
+         << "Usage:\n"
+         << "  server [--port <port>] [--worker <workerCount>]\n"
+         << "  server [-p <port>] [-w <workerCount>]\n"
+         << "  server --help\n\n"
+         << "Options:\n"
+         << "  --port, -p    Specify the port number (default: 8080).\n"
+         << "  --worker, -w  Specify the number of worker threads (default: 10).\n"
+         << "  --help        Show this help message and exit.\n"
+         << "\n";
+}
+
 // 서버 파라미터 설정
-void configureParameters(int argc, char* argv[]) {
+bool configureParameters(int argc, char* argv[]) {
     for (int i = 1; i < argc; ++i) {
         try {
-            if (strcmp(argv[i], "--port") == 0 && i + 1 < argc) {
-                port = stoi(argv[++i]);
-            } 
-            else if (strcmp(argv[i], "--worker") == 0 && i + 1 < argc) {
-                workerCount = stoi(argv[++i]);
-            } 
-            else if (strcmp(argv[i], "-p") == 0 && i + 1 < argc) {
-                port = stoi(argv[++i]);
-            } 
-            else if (strcmp(argv[i], "-w") == 0 && i + 1 < argc) {
-                workerCount = stoi(argv[++i]);
+            string arg = argv[i];
+            if (arg == "--help") {
+                printHelp();
+                exit(EXIT_SUCCESS);
             }
+            else if (arg == "--port" && i + 1 < argc) {
+                port = stoi(argv[++i]);
+            } 
+            else if (arg == "--worker" && i + 1 < argc) {
+                workerCount = stoi(argv[++i]);
+            } 
+            else if (arg == "-p" && i + 1 < argc) {
+                port = stoi(argv[++i]);
+            } 
+            else if (arg == "-w" && i + 1 < argc) {
+                workerCount = stoi(argv[++i]);
+            } 
             else {
-                throw invalid_argument(string("Unsupported option: ") + argv[i]);
+                cerr << "[Error]: Unsupported option: " << arg << endl;
+                return false;
             }
-        } catch (const invalid_argument& e) {
-            cerr << "[Error]: Invalid value for option " << argv[i - 1] 
-                 << ". Expected a number." << endl;
-            exit(EXIT_FAILURE);
-        } catch (const out_of_range& e) {
-            cerr << "[Error]: Value out of range for option " << argv[i - 1] << endl;
-            exit(EXIT_FAILURE);
+        } catch (const invalid_argument&) {
+            cerr << "[Error]: Invalid value for option: " << argv[i - 1] << ". Expected a number." << endl;
+            return false;
+        } catch (const out_of_range&) {
+            cerr << "[Error]: Value out of range for option: " << argv[i - 1] << endl;
+            return false;
         }
     }
+    return true;
 }
