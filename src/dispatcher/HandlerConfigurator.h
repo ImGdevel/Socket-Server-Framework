@@ -2,11 +2,11 @@
 #define HANDLERCONFIGURATOR_H
 
 class MessageDispatcher;
-class EventHandler;
+class IEventHandler;
 
 class HandlerConfigurator {
 public:
-    static void registerHandlers(MessageDispatcher& dispatcher, const EventHandler& handler) ;
+    static void registerHandlers(MessageDispatcher& dispatcher, const IEventHandler& handler) ;
 };
 
 #endif
