@@ -13,6 +13,7 @@ class MessageDispatcher {
 public:
     void registerHandler(const std::string& type, HandlerFnc handler);
     void handleEvent(const std::shared_ptr<ClientSession>& session, const std::string& message);
+    pair<std::string, std::string> extractMessageTypeAndContent(const std::string& message) const;
 
 private:
     std::unordered_map<std::string, HandlerFnc> handlers;

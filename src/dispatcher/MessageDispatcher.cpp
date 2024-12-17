@@ -8,14 +8,12 @@ void MessageDispatcher::registerHandler(const string& type, HandlerFnc handler) 
 }
 
 void MessageDispatcher::handleEvent(const std::shared_ptr<ClientSession>& session, const string& message) {
+    auto [type, content] = extractMessageTypeAndContent(message);
 
-    auto delimiterPos = message.find(":");
-    if (delimiterPos == string::npos) {
+    if (type.empty()) {
         cerr << "Invalid message format: " << message << endl;
         return;
     }
-    string type = message.substr(0, delimiterPos);
-    string content = message.substr(delimiterPos + 1);
 
     cout << session->getSocket() << " socket event! >> type: " << type << " | message: " << content << endl;
 
@@ -25,4 +23,15 @@ void MessageDispatcher::handleEvent(const std::shared_ptr<ClientSession>& sessio
     } else {
         cerr << "No handler found for type: " << type << endl;
     }
+}
+
+// 메시지 타입과 내용을 추출하는 메서드
+pair<string, string> MessageDispatcher::extractMessageTypeAndContent(const string& message) const {
+    auto delimiterPos = message.find(":");
+    if (delimiterPos == string::npos) {
+        return {"", ""};
+    }
+    string type = message.substr(0, delimiterPos);
+    string content = message.substr(delimiterPos + 1);
+    return {type, content};
 }
