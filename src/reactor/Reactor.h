@@ -5,10 +5,11 @@
 #include <functional>
 #include <unordered_map>
 #include <memory>
-#include "MessageDispatcher.h"
+#include "../dispatcher/MessageDispatcher.h"
 
 class ClientSession;
 class ThreadPool;
+class MessageDispatcher;
 
 class Reactor {
 public:
