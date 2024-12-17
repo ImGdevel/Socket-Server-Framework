@@ -1,4 +1,6 @@
 #include "Server.h"
+#include "dispatcher/HandlerConfigurator.h"
+#include "handler/EventHandler.h"
 #include <iostream>
 #include <memory>
 
@@ -6,17 +8,9 @@ using namespace std;
 
 Server* Server::instance = nullptr;
 
-void echoHandler(shared_ptr<ClientSession> session, const string& message) {
-    if (session) {
-        string echoMessage = "Echo: " + message;
-        cout << "send message : " << echoMessage << endl;
-        session->sendMessage(echoMessage);
-    }
-}
-
 Server::Server(int port, int workerCount) : port(port), workerCount(workerCount) {
-
-    messageDispatcher.registerHandler("echo", echoHandler);
+    EventHandler handler;
+    HandlerConfigurator::registerHandlers(messageDispatcher, handler);
 
     threadPool = make_unique<ThreadPool>(workerCount);
     reactor = make_unique<Reactor>(port, *threadPool, messageDispatcher);
