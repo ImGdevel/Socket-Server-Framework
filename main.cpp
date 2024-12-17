@@ -1,7 +1,10 @@
 #include "src/Server.h"
 #include <iostream>
-#include <string.h>
-#include <signal.h>
+#include <string>
+#include <cstring>
+#include <csignal>
+#include <cstdlib>
+#include <stdexcept>
 
 using namespace std;
 
@@ -13,29 +16,44 @@ void serverShutdownHandler(int sig);
 
 int main(int argc, char* argv[]) {
     try {
-        
-        configureParameters(argc, argv);
-
-        Server* server = Server::getInstance(port, workerCount);
-        
         signal(SIGINT, serverShutdownHandler);
-
+        configureParameters(argc, argv);
+        Server* server = Server::getInstance(port, workerCount);
         server->run();
 
     } catch (const exception& ex) {
         cerr << "[Error]: " << ex.what() << endl;
-        return 1;
+        return EXIT_FAILURE;
     }
-    return 0;
+    return EXIT_SUCCESS;
 }
 
 // 서버 파라미터 설정
 void configureParameters(int argc, char* argv[]) {
     for (int i = 1; i < argc; ++i) {
-        if (strncmp(argv[i], "--port=", 7) == 0) {
-            port = stoi(argv[i] + 7);
-        } else if (strncmp(argv[i], "--worker=", 9) == 0) {
-            workerCount = stoi(argv[i] + 9);
+        try {
+            if (strcmp(argv[i], "--port") == 0 && i + 1 < argc) {
+                port = stoi(argv[++i]);
+            } 
+            else if (strcmp(argv[i], "--worker") == 0 && i + 1 < argc) {
+                workerCount = stoi(argv[++i]);
+            } 
+            else if (strcmp(argv[i], "-p") == 0 && i + 1 < argc) {
+                port = stoi(argv[++i]);
+            } 
+            else if (strcmp(argv[i], "-w") == 0 && i + 1 < argc) {
+                workerCount = stoi(argv[++i]);
+            }
+            else {
+                throw invalid_argument(string("Unsupported option: ") + argv[i]);
+            }
+        } catch (const invalid_argument& e) {
+            cerr << "[Error]: Invalid value for option " << argv[i - 1] 
+                 << ". Expected a number." << endl;
+            exit(EXIT_FAILURE);
+        } catch (const out_of_range& e) {
+            cerr << "[Error]: Value out of range for option " << argv[i - 1] << endl;
+            exit(EXIT_FAILURE);
         }
     }
 }
@@ -46,5 +64,5 @@ void serverShutdownHandler(int sig) {
     if (server != nullptr) {
         server->terminate();
     }
-    exit(0);
+    exit(EXIT_SUCCESS);
 }
