@@ -8,8 +8,11 @@
 
 using namespace std;
 
-static int port = 8080;
-static int workerCount = 10;
+constexpr int DEFAULT_PORT = 8080;
+constexpr int DEFAULT_WORKER_COUNT = 10;
+
+static int port = DEFAULT_PORT;
+static int workerCount = DEFAULT_WORKER_COUNT;
 
 void configureParameters(int argc, char* argv[]);
 void serverShutdownHandler(int sig);
