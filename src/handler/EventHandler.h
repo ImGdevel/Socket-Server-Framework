@@ -11,6 +11,7 @@ public:
 private:
     void onLogin(const std::shared_ptr<ClientSession>& session, const std::string& message) const;
     void onChat(const std::shared_ptr<ClientSession>& session, const std::string& message) const;
+    void onEcho(const std::shared_ptr<ClientSession>& session, const std::string& message) const;
 };
 
 #endif
