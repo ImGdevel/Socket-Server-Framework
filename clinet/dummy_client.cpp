@@ -43,6 +43,15 @@ ssize_t recvAll(int socket, char* buffer, size_t length) {
 
 // 무작위 메시지 생성
 std::string generateRandomMessage() {
+    const std::string types[] = {
+        "ECHO",
+        "LOGIN",
+        "CHAT",
+        "TASK",
+        "DELAY"
+    };
+    std::string type = types[std::rand() % 5];
+
     const std::string contents[] = {
         "Hello! This is Echo Message",
         "How are you?",
@@ -52,7 +61,7 @@ std::string generateRandomMessage() {
         "Echo server is working fine"
     };
     std::string content = contents[std::rand() % 6];
-    return "echo:" + content;
+    return type + ":" + content;
 }
 
 int main() {
