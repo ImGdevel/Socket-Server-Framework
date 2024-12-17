@@ -1,14 +1,8 @@
 #ifndef EVENTHANDLER_H
 #define EVENTHANDLER_H
 
-#include <functional>
-#include <memory>
-#include <string>
+#include "../common/HandlerTypes.h"
 #include <unordered_map>
-
-class ClientSession;
-
-using HandlerFunc = std::function<void(const std::shared_ptr<ClientSession>&, const std::string&)>;
 
 class EventHandler {
 public:

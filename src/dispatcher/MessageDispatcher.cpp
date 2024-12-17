@@ -3,7 +3,7 @@
 
 using namespace std;
 
-void MessageDispatcher::registerHandler(const string& type, HandlerFnc handler) {
+void MessageDispatcher::registerHandler(const string& type, HandlerFunc handler) {
     handlers[type] = handler;
 }
 
@@ -25,7 +25,7 @@ void MessageDispatcher::handleEvent(const std::shared_ptr<ClientSession>& sessio
     }
 }
 
-// 메시지 타입과 내용을 추출하는 메서드
+// 메시지 타입과 내용을 추출
 pair<string, string> MessageDispatcher::extractMessageTypeAndContent(const string& message) const {
     auto delimiterPos = message.find(":");
     if (delimiterPos == string::npos) {
