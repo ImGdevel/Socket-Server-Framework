@@ -5,10 +5,15 @@
 #include <unistd.h>
 #include <cstdlib>
 #include <ctime>
+#include <thread>
+#include <vector>
 
 #define SERVER_PORT 8080
 #define SERVER_IP "127.0.0.1"
 #define BUFFER_SIZE 1024
+#define NUM_CLIENTS 20  // 클라이언트 수
+
+using namespace std;
 
 void errorExit(const std::string& message) {
     perror(message.c_str());
@@ -64,9 +69,10 @@ std::string generateRandomMessage() {
     return type + ":" + content;
 }
 
-int main() {
+// 클라이언트 실행 함수
+void runClient(int clientId) {
     // 랜덤 메시지 생성을 위한 시드 초기화
-    std::srand(std::time(nullptr));
+    std::srand(std::time(nullptr) + clientId);  // 각 클라이언트에 대해 다른 시드 사용
 
     // 1. 소켓 생성
     int clientSocket = socket(AF_INET, SOCK_STREAM, 0);
@@ -82,13 +88,23 @@ int main() {
         errorExit("Invalid address or address not supported");
     }
 
-    // 3. 서버에 연결
+    // 3. 클라이언트 소켓에 로컬 포트 바인딩
+    sockaddr_in clientAddr{};
+    clientAddr.sin_family = AF_INET;
+    clientAddr.sin_addr.s_addr = INADDR_ANY;
+    clientAddr.sin_port = htons(0);  // 운영체제가 자동으로 포트 할당
+
+    if (bind(clientSocket, (struct sockaddr*)&clientAddr, sizeof(clientAddr)) < 0) {
+        errorExit("Bind failed");
+    }
+
+    // 4. 서버에 연결
     if (connect(clientSocket, (struct sockaddr*)&serverAddr, sizeof(serverAddr)) < 0) {
         errorExit("Connection to server failed");
     }
-    std::cout << "Connected to server at " << SERVER_IP << ":" << SERVER_PORT << std::endl;
+    std::cout << "Client " << clientId << " connected to server at " << SERVER_IP << ":" << SERVER_PORT << std::endl;
 
-    // 4. 메시지를 1초마다 지속적으로 전송
+    // 5. 메시지를 1초마다 지속적으로 전송
     while (true) {
         std::string message = generateRandomMessage();
         uint32_t messageLength = htonl(message.size()); // 네트워크 바이트 순서로 변환
@@ -102,7 +118,7 @@ int main() {
         if (sendAll(clientSocket, sendBuffer, totalMessageSize) < 0) {
             errorExit("Failed to send message to server");
         }
-        std::cout << "Message sent: " << message << std::endl;
+        std::cout << "Client " << clientId << " sent message: " << message << std::endl;
 
         // 서버로부터 응답 수신
         uint32_t receivedMessageLength = 0;
@@ -120,15 +136,30 @@ int main() {
         if (recvAll(clientSocket, receiveBuffer, receivedMessageLength) <= 0) {
             errorExit("Failed to receive message from server");
         }
-        std::cout << "Message received from server: " << receiveBuffer << std::endl;
+        std::cout << "Client " << clientId << " received message: " << receiveBuffer << std::endl;
 
         // 1초 대기
         sleep(1);
     }
 
-    // 5. 소켓 닫기
+    // 6. 소켓 닫기
     close(clientSocket);
-    std::cout << "Connection closed" << std::endl;
+    std::cout << "Client " << clientId << " connection closed" << std::endl;
+}
+
+int main() {
+    // 클라이언트 실행 스레드 생성
+    std::vector<std::thread> clientThreads;
+
+    // 여러 개의 클라이언트를 실행
+    for (int i = 0; i < NUM_CLIENTS; ++i) {
+        clientThreads.push_back(std::thread(runClient, i + 1));
+    }
+
+    // 모든 클라이언트 스레드가 끝날 때까지 대기
+    for (auto& t : clientThreads) {
+        t.join();
+    }
 
     return 0;
 }
