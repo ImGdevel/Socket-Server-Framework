@@ -13,28 +13,23 @@
 
 using namespace std;
 
-Reactor::Reactor(int port, ThreadPool& threadPool, MessageDispatcher messageDispatcher) 
-        : port(port), serverSocket(-1), running(false), threadPool(threadPool), messageDispatcher(messageDispatcher) {
+Reactor::Reactor(int port, ThreadPool& threadPool, MessageDispatcher messageDispatcher)
+        : port(port), serverSocket(-1), epollFd(-1), running(false), threadPool(threadPool), messageDispatcher(messageDispatcher) {
     setupServerSocket();
     setupIOMultiplexing();
 }
 
 Reactor::~Reactor() {
+    stop();
     for (auto& [socket, session] : clientSessions) {
-        close(socket);
+        safeClose(socket);
     }
     clientSessions.clear();
-    
-    if(epollFd >= 0){
-        close(epollFd);
-    }
-    if (serverSocket >= 0) {
-        close(serverSocket);
-    }
+    safeClose(epollFd);
+    safeClose(serverSocket);
 }
 
-// Server Socket 설정
-void Reactor::setupServerSocket(){
+void Reactor::setupServerSocket() {
     serverSocket = socket(AF_INET, SOCK_STREAM, 0);
     if (serverSocket < 0) {
         throw runtime_error("Failed to create socket");
@@ -42,6 +37,7 @@ void Reactor::setupServerSocket(){
 
     int opt = 1;
     if (setsockopt(serverSocket, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt)) < 0) {
+        safeClose(serverSocket);
         throw runtime_error("Failed to set socket options");
     }
 
@@ -51,34 +47,34 @@ void Reactor::setupServerSocket(){
     serverAddr.sin_port = htons(port);
 
     if (bind(serverSocket, (struct sockaddr*)&serverAddr, sizeof(serverAddr)) < 0) {
+        safeClose(serverSocket);
         throw runtime_error("Failed to bind socket");
     }
 
-    if (listen(serverSocket, 10) < 0) {
+    if (listen(serverSocket, LISTEN_BACKLOG) < 0) {
+        safeClose(serverSocket);
         throw runtime_error("Failed to listen on socket");
     }
 
     setNonBlocking(serverSocket);
 }
 
-// I/O Multipexing epoll 설정
-void Reactor::setupIOMultiplexing(){
+void Reactor::setupIOMultiplexing() {
     epollFd = epoll_create1(0);
     if (epollFd < 0) {
         throw runtime_error("Failed to create epoll instance");
     }
 
-    // 서버 소켓을 epoll에 등록
     epoll_event event{};
     event.events = EPOLLIN;
     event.data.fd = serverSocket;
     if (epoll_ctl(epollFd, EPOLL_CTL_ADD, serverSocket, &event) < 0) {
+        safeClose(epollFd);
         throw runtime_error("Failed to add server socket to epoll");
     }
 }
 
 
-// 서버 가동
 void Reactor::start() {
     cout << "Reactor started, waiting for connections..." << endl;
     running = true;
@@ -104,12 +100,10 @@ void Reactor::start() {
     }
 }
 
-// 서버 종료
-void Reactor::stop(){
+void Reactor::stop() {
     running = false;
 }
 
-// 클라이언트 연결
 void Reactor::acceptConnection() {
     while (true) {
         sockaddr_in clientAddr{};
@@ -127,32 +121,28 @@ void Reactor::acceptConnection() {
         cout << "New client connected: " << clientSocket << endl;
         setNonBlocking(clientSocket);
 
-        clientSessions[clientSocket] = make_shared<ClientSession>(clientSocket);
+        addClientSession(clientSocket);
 
-        // 클라이언트 소켓을 epoll에 등록
         epoll_event event{};
         event.events = EPOLLIN | EPOLLET;
         event.data.fd = clientSocket;
         if (epoll_ctl(epollFd, EPOLL_CTL_ADD, clientSocket, &event) < 0) {
             perror("Failed to add client socket to epoll");
-            if (clientSessions.find(clientSocket) != clientSessions.end()) {
-                clientSessions.erase(clientSocket);
-            }
+            removeClientSession(clientSocket);
         }
     }
 }
 
-// 클라이언트 메시지 수신
 void Reactor::handleClientEvent(int clientSocket) {
-    char buffer[1024];
+    char buffer[BUFFER_SIZE];
 
     auto sessionIter = clientSessions.find(clientSocket);
-    if (sessionIter == clientSessions.end()) {
-        close(clientSocket);
+    if (sessionIter == clientSessions.end()) {     
+        removeClientSession(clientSocket);
         return;
     }
-    auto& session = sessionIter->second;
 
+    auto& session = sessionIter->second;
     ssize_t bytesRead = recv(clientSocket, buffer, sizeof(buffer), 0);
     cout << "recv clientSocket: " << clientSocket << ", read = " << bytesRead << endl;
 
@@ -161,17 +151,11 @@ void Reactor::handleClientEvent(int clientSocket) {
             return;
         }
         perror("recv failed");
-        epoll_ctl(epollFd, EPOLL_CTL_DEL, clientSocket, nullptr); 
-        session->closeSession();
-        clientSessions.erase(clientSocket);
-        // todo : 종료된 세션을 안전하게 종료시킬 수 있도록 할 것
+        removeClientSession(clientSocket);
         return;
     } else if (bytesRead == 0) {
         cout << "Client disconnected: " << clientSocket << endl;
-        epoll_ctl(epollFd, EPOLL_CTL_DEL, clientSocket, nullptr);
-        session->closeSession();
-        clientSessions.erase(clientSocket);
-        // todo : 종료된 세션을 안전하게 종료시킬 수 있도록 할 것
+        removeClientSession(clientSocket);
         return;
     } else {
         session->appendToBuffer(buffer, bytesRead);
@@ -190,10 +174,26 @@ void Reactor::handleClientEvent(int clientSocket) {
             });
         }
     }
-    
 }
 
-// Non-Blocking 설정
+void Reactor::addClientSession(int clientSocket) {
+    clientSessions[clientSocket] = make_shared<ClientSession>(clientSocket);
+}
+
+void Reactor::removeClientSession(int clientSocket) {
+    if (epoll_ctl(epollFd, EPOLL_CTL_DEL, clientSocket, nullptr) < 0) {
+
+    }
+
+    auto it = clientSessions.find(clientSocket);
+    if (it != clientSessions.end()) {
+        it->second->closeSession();
+        clientSessions.erase(it);
+    }
+
+    safeClose(clientSocket);
+}
+
 void Reactor::setNonBlocking(int socket) {
     int flags = fcntl(socket, F_GETFL, 0);
     if (flags < 0) {
@@ -202,5 +202,11 @@ void Reactor::setNonBlocking(int socket) {
 
     if (fcntl(socket, F_SETFL, flags | O_NONBLOCK) < 0) {
         throw runtime_error("Failed to set socket to non-blocking");
+    }
+}
+
+void Reactor::safeClose(int socket) {
+    if (socket >= 0) {
+        close(socket);
     }
 }
