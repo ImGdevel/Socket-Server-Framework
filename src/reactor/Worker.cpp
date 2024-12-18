@@ -1,4 +1,5 @@
 #include "Worker.h"
+#include "Logger.h"
 #include <memory>
 #include <iostream>
 
@@ -21,9 +22,9 @@ void Worker::start() {
             try {
                 task();
             } catch (const runtime_error& e) {
-                cerr << "Runtime Exception in task execution: " << e.what() << endl;
+                Logger::error("Runtime Exception in task execution: " + string(e.what()));
             } catch (const exception& e) {
-                cerr << "Exception in task execution: " << e.what() << endl;
+                Logger::error("Exception in task execution: " + string(e.what()));
             }
         }
     });

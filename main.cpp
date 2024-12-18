@@ -1,4 +1,5 @@
 #include "src/Server.h"
+#include "Logger.h"
 #include <iostream>
 #include <string>
 #include <csignal>
@@ -37,7 +38,7 @@ int main(int argc, char* argv[]) {
         server->run();
 
     } catch (const exception& ex) {
-        cerr << "[Error]: " << ex.what() << endl;
+        Logger::error("[Error]: " + string(ex.what()));
         return EXIT_FAILURE;
     }
     return EXIT_SUCCESS;
@@ -79,14 +80,14 @@ bool configureParameters(int argc, char* argv[]) {
                 workerCount = stoi(argv[++i]);
             } 
             else {
-                cerr << "[Error]: Unsupported option: " << arg << endl;
+                Logger::error("[Error]: Unsupported option: " + arg);
                 return false;
             }
         } catch (const invalid_argument&) {
-            cerr << "[Error]: Invalid value for option: " << argv[i - 1] << ". Expected a number." << endl;
+            Logger::error("[Error]: Invalid value for option: " + string(argv[i - 1]) + ". Expected a number.");
             return false;
         } catch (const out_of_range&) {
-            cerr << "[Error]: Value out of range for option: " << argv[i - 1] << endl;
+            Logger::error("[Error]: Value out of range for option: " + string(argv[i - 1]));
             return false;
         }
     }

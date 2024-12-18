@@ -1,4 +1,5 @@
 #include "Reactor.h"
+#include "Logger.h"
 #include "../session/ClientSession.h"
 #include "../threadpool/ThreadPool.h"
 #include <iostream>
@@ -76,7 +77,7 @@ void Reactor::setupIOMultiplexing() {
 
 
 void Reactor::start() {
-    cout << "Reactor started, waiting for connections..." << endl;
+    Logger::info("Reactor started, waiting for connections...");
     running = true;
 
     epoll_event events[MAX_EVENTS];
@@ -114,11 +115,11 @@ void Reactor::acceptConnection() {
             if (errno == EAGAIN || errno == EWOULDBLOCK) {
                 break;
             }
-            perror("accept failed");
+            Logger::error("accept failed: " + string(strerror(errno)));
             return;
         }
 
-        cout << "New client connected: " << clientSocket << endl;
+        Logger::info("New client connected: " + to_string(clientSocket));
         setNonBlocking(clientSocket);
 
         addClientSession(clientSocket);
@@ -127,7 +128,7 @@ void Reactor::acceptConnection() {
         event.events = EPOLLIN | EPOLLET;
         event.data.fd = clientSocket;
         if (epoll_ctl(epollFd, EPOLL_CTL_ADD, clientSocket, &event) < 0) {
-            perror("Failed to add client socket to epoll");
+            Logger::error("Failed to add client socket to epoll: " + to_string(clientSocket));
             removeClientSession(clientSocket);
         }
     }
@@ -137,30 +138,29 @@ void Reactor::handleClientEvent(int clientSocket) {
     char buffer[BUFFER_SIZE];
 
     auto sessionIter = clientSessions.find(clientSocket);
-    if (sessionIter == clientSessions.end()) {     
+    if (sessionIter == clientSessions.end()) {
+        Logger::error("Invalid client socket: " + to_string(clientSocket));
         removeClientSession(clientSocket);
         return;
     }
 
     auto& session = sessionIter->second;
     ssize_t bytesRead = recv(clientSocket, buffer, sizeof(buffer), 0);
-    cout << "recv clientSocket: " << clientSocket << ", read = " << bytesRead << endl;
 
     if (bytesRead < 0) {
         if (errno == EAGAIN || errno == EWOULDBLOCK) {
             return;
         }
-        perror("recv failed");
+        Logger::error("recv failed for socket: " + std::to_string(clientSocket));
         removeClientSession(clientSocket);
         return;
     } else if (bytesRead == 0) {
-        cout << "Client disconnected: " << clientSocket << endl;
+        Logger::info("Client disconnected: " + std::to_string(clientSocket));
         removeClientSession(clientSocket);
         return;
     } else {
         session->appendToBuffer(buffer, bytesRead);
         
-        // 프로세싱 로직 수정, 세션 큐에 작업을 저장한뒤 빼는 방법도 고려해볼만 하다.
         if(session->isProcessing()){
             return;
         }
@@ -177,12 +177,12 @@ void Reactor::handleClientEvent(int clientSocket) {
 }
 
 void Reactor::addClientSession(int clientSocket) {
-    clientSessions[clientSocket] = make_shared<ClientSession>(clientSocket);
+    clientSessions[clientSocket] = std::make_shared<ClientSession>(clientSocket);
 }
 
 void Reactor::removeClientSession(int clientSocket) {
     if (epoll_ctl(epollFd, EPOLL_CTL_DEL, clientSocket, nullptr) < 0) {
-
+        Logger::warning("Failed to remove client socket from epoll: " + to_string(clientSocket));
     }
 
     auto it = clientSessions.find(clientSocket);
