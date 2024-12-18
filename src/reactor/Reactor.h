@@ -20,11 +20,13 @@ public:
     void stop();
 
 private:
+    const int MAX_EVENTS = 1024;
+    const int BUFFER_SIZE = 1024;
+    const int LISTEN_BACKLOG = 10;
+
     int port;
     int serverSocket;
     int epollFd;
-
-    static const int MAX_EVENTS = 1024;
 
     bool running = false;
     
@@ -33,6 +35,9 @@ private:
     void acceptConnection();
     void handleClientEvent(int clientSocket);
     void setNonBlocking(int socket);
+    void safeClose(int socket);
+    void addClientSession(int socket);
+    void removeClientSession(int socket);
 
     std::unordered_map<int, std::shared_ptr<ClientSession>> clientSessions;
     ThreadPool& threadPool;
