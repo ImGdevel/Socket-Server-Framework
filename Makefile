@@ -1,6 +1,6 @@
 
 CXX = g++
-CXXFLAGS = -std=c++17 -Wall
+CXXFLAGS = -std=c++17 -Wall -Iinclude -Isrc/common
 
 TARGET = build/server
 
@@ -10,9 +10,9 @@ OBJ = $(SRC:.cpp=.o)
 $(TARGET): $(OBJ)
 	$(CXX) $(OBJ) -o $(TARGET)
 
-
 %.o: %.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 clean:
 	rm -f $(OBJ)
+	rm -f $(TARGET)

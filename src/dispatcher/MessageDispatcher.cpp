@@ -1,4 +1,5 @@
 #include "MessageDispatcher.h"
+#include "Logger.h"
 #include <iostream>
 
 using namespace std;
@@ -11,17 +12,17 @@ void MessageDispatcher::handleEvent(const std::shared_ptr<ClientSession>& sessio
     auto [type, content] = extractMessageTypeAndContent(message);
 
     if (type.empty()) {
-        cerr << "Invalid message format: " << message << endl;
+        Logger::error("Invalid message format: " + message);
         return;
     }
 
-    cout << session->getSocket() << " socket event! >> type: " << type << " | message: " << content << endl;
+    Logger::info("Socket " + to_string(session->getSocket()) + " event! >> type: " + type + " | message: " + content);
 
     auto it = handlers.find(type);
     if (it != handlers.end()) {
         it->second(session, content);
     } else {
-        cerr << "No handler found for type: " << type << endl;
+        Logger::error("No handler found for type: " + type);
     }
 }
 
