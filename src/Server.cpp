@@ -1,7 +1,7 @@
 #include "Server.h"
 #include "Logger.h"
 #include "dispatcher/HandlerConfigurator.h"
-#include "handler/EventHandler.h"
+#include "handler/TestEventHandler.h"
 #include <iostream>
 #include <memory>
 
@@ -10,7 +10,7 @@ using namespace std;
 Server* Server::instance = nullptr;
 
 Server::Server(int port, int workerCount) : port(port), workerCount(workerCount) {
-    EventHandler handler;
+    TestEventHandler handler;
     HandlerConfigurator::registerHandlers(messageDispatcher, handler);
 
     threadPool = make_unique<ThreadPool>(workerCount);

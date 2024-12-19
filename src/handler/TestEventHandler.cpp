@@ -1,4 +1,4 @@
-#include "EventHandler.h"
+#include "TestEventHandler.h"
 #include "Logger.h"
 #include <iostream>
 #include <thread>
@@ -6,7 +6,7 @@
 
 using namespace std;
 
-unordered_map<string, HandlerFunc> EventHandler::createHandlers() const {
+unordered_map<string, HandlerFunc> TestEventHandler::createHandlers() const {
     return {
         {"LOGIN", [this](auto session, auto message) { this->onLogin(session, message); }},
         {"CHAT", [this](auto session, auto message) { this->onChat(session, message); }},
@@ -16,7 +16,7 @@ unordered_map<string, HandlerFunc> EventHandler::createHandlers() const {
     };
 }
 
-void EventHandler::onLogin(const shared_ptr<ClientSession>& session, const string& message) const {
+void TestEventHandler::onLogin(const shared_ptr<ClientSession>& session, const string& message) const {
     if (session) {
         std::this_thread::sleep_for(std::chrono::seconds(10));
 
@@ -26,7 +26,7 @@ void EventHandler::onLogin(const shared_ptr<ClientSession>& session, const strin
     }
 }
 
-void EventHandler::onChat(const shared_ptr<ClientSession>& session, const string& message) const {
+void TestEventHandler::onChat(const shared_ptr<ClientSession>& session, const string& message) const {
     if (session) {
         std::this_thread::sleep_for(std::chrono::microseconds(100));
 
@@ -36,7 +36,7 @@ void EventHandler::onChat(const shared_ptr<ClientSession>& session, const string
     }
 }
 
-void EventHandler::onEcho(const shared_ptr<ClientSession>& session, const string& message) const {
+void TestEventHandler::onEcho(const shared_ptr<ClientSession>& session, const string& message) const {
     if (session) {
         string echoMessage = "ECHO: " + message;
         Logger::info("send message : " + echoMessage);
@@ -44,7 +44,7 @@ void EventHandler::onEcho(const shared_ptr<ClientSession>& session, const string
     }
 }
 
-void EventHandler::onDelay(const shared_ptr<ClientSession>& session, const string& message) const {
+void TestEventHandler::onDelay(const shared_ptr<ClientSession>& session, const string& message) const {
     if (session) {
         std::this_thread::sleep_for(std::chrono::seconds(1));
 
@@ -54,7 +54,7 @@ void EventHandler::onDelay(const shared_ptr<ClientSession>& session, const strin
     }
 }
 
-void EventHandler::onTask(const shared_ptr<ClientSession>& session, const string& message) const {
+void TestEventHandler::onTask(const shared_ptr<ClientSession>& session, const string& message) const {
     if (session) {
         std::this_thread::sleep_for(std::chrono::seconds(3));
 
