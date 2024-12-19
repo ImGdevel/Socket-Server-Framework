@@ -1,9 +1,9 @@
-#ifndef EVENTHANDLER_H
-#define EVENTHANDLER_H
+#ifndef TESTEVENTHANDLER_H
+#define TESTEVENTHANDLER_H
 
 #include "IEventHandler.h"
 
-class EventHandler : public IEventHandler {
+class TestEventHandler : public IEventHandler {
 public:
     std::unordered_map<std::string, HandlerFunc> createHandlers() const;
 
