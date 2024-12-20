@@ -1,7 +1,7 @@
 #ifndef MESSAGEDISPATCHER_H
 #define MESSAGEDISPATCHER_H
 
-#include "../common/HandlerTypes.h"
+#include "HandlerTypes.h"
 #include <unordered_map>
 #include <utility>
 

@@ -4,7 +4,7 @@
 #include <functional>
 #include <memory>
 #include <string>
-#include "../session/ClientSession.h"
+#include "../server/session/ClientSession.h"
 
 using HandlerFunc = std::function<void(const std::shared_ptr<ClientSession>&, const std::string&)>;
 
