@@ -1,10 +1,10 @@
 
 CXX = g++
-CXXFLAGS = -std=c++17 -Wall -Iinclude -Isrc/common
+CXXFLAGS = -std=c++17 -Wall -Iinclude -Isrc/utils
 
 TARGET = build/server
 
-SRC = main.cpp src/Server.cpp src/reactor/Reactor.cpp src/reactor/Worker.cpp src/session/ClientSession.cpp src/threadpool/ThreadPool.cpp src/dispatcher/MessageDispatcher.cpp src/dispatcher/HandlerConfigurator.cpp src/handler/TestEventHandler.cpp src/chat/ChatRoom.cpp src/chat/ChatRoomManager.cpp
+SRC = src/main.cpp src/server/Server.cpp src/server/reactor/Reactor.cpp src/server/reactor/Worker.cpp src/server/session/ClientSession.cpp src/server/threadpool/ThreadPool.cpp src/server/dispatcher/MessageDispatcher.cpp src/server/dispatcher/HandlerConfigurator.cpp src/server/handler/TestEventHandler.cpp src/server/chat/ChatRoom.cpp src/server/chat/ChatRoomManager.cpp
 OBJ = $(SRC:.cpp=.o)
 
 $(TARGET): $(OBJ)
