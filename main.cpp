@@ -36,7 +36,7 @@ int main(int argc, char* argv[]) {
         server.run();
 
     } catch (const exception& ex) {
-        Logger::error("[Error]: " + string(ex.what()));
+        Logger::error(string(ex.what()));
         return EXIT_FAILURE;
     }
     return EXIT_SUCCESS;
@@ -78,14 +78,14 @@ bool configureParameters(int argc, char* argv[]) {
                 workerCount = stoi(argv[++i]);
             } 
             else {
-                Logger::error("[Error]: Unsupported option: " + arg);
+                Logger::error("Unsupported option: " + arg);
                 return false;
             }
         } catch (const invalid_argument&) {
-            Logger::error("[Error]: Invalid value for option: " + string(argv[i - 1]) + ". Expected a number.");
+            Logger::error("Invalid value for option: " + string(argv[i - 1]) + ". Expected a number.");
             return false;
         } catch (const out_of_range&) {
-            Logger::error("[Error]: Value out of range for option: " + string(argv[i - 1]));
+            Logger::error("Value out of range for option: " + string(argv[i - 1]));
             return false;
         }
     }
