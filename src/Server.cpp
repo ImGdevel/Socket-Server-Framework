@@ -13,19 +13,22 @@ Server& Server::getInstance(int port, int workerCount) {
 }
 
 Server::Server(int port, int workerCount) : port(port), workerCount(workerCount) {
+    initialize();
+}
+
+void Server::initialize() {
     TestEventHandler handler;
     HandlerConfigurator::registerHandlers(messageDispatcher, handler);
 
     threadPool = make_unique<ThreadPool>(workerCount);
     reactor = make_unique<Reactor>(port, *threadPool, messageDispatcher);
 
-    Logger::info("Server instance created on port " + to_string(port) + " with " + to_string(workerCount) + " workers.");
+    Logger::debug("Server instance created");
 }
 
 Server::~Server() {
     terminate();
 }
-
 void Server::run() {
     Logger::info("Server is starting on port " + to_string(port) + " with " + to_string(workerCount) + " workers.");
     reactor->start();

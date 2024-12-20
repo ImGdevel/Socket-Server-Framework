@@ -6,7 +6,6 @@
 
 class Server {
 public:
-    //싱글톤
     static Server& getInstance(int port, int workerCount);
 
     ~Server();
@@ -15,19 +14,18 @@ public:
     void terminate();
 
 private:
-    static Server* instance;
-    
+    Server(int port, int workerCount);
+    Server(const Server&) = delete;
+    Server& operator=(const Server&) = delete;
+
     int port;
     int workerCount;
 
     std::unique_ptr<Reactor> reactor; 
     std::unique_ptr<ThreadPool> threadPool;
     MessageDispatcher messageDispatcher;
-    
-    Server(int port, int workerCount);
-    Server(const Server&) = delete;
-    Server& operator=(const Server&) = delete;
 
+    void initialize();
 };
 
 #endif 
