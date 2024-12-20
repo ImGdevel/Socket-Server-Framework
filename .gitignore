@@ -1,3 +1,10 @@
+# 컴파일러/IDE 파일
 .vscode
+
+# 빌드 파일
 /build/server
+
+# 목적 파일
 *.o
+/build/obj
+/build/obj/*
