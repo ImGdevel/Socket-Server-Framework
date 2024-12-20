@@ -1,6 +1,6 @@
 # 컴파일러 설정
 CXX = g++
-CXXFLAGS = -std=c++17 -Wall -Iinclude -Isrc/utils -Iexternal/googletest/googletest/include
+CXXFLAGS = -std=c++17 -Wall -g -Iinclude -Isrc/utils -Iexternal/googletest/googletest/include
 
 # 타겟 설정
 TARGET = build/server
@@ -34,10 +34,9 @@ TEST_SRC = $(TEST_DIR)/ServerTest.cpp \
            $(TEST_DIR)/ChatRoomTest.cpp
 
 # 오브젝트 파일 경로
-OBJ = $(SRC:.cpp=.o)
-TEST_OBJ = $(TEST_SRC:.cpp=.o)
-
-
+OBJ_DIR = build/obj
+OBJ = $(SRC:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
+TEST_OBJ = $(TEST_SRC:$(TEST_DIR)/%.cpp=$(OBJ_DIR)/%.o)
 
 # 기본 타겟: 서버 빌드
 all: $(TARGET)
@@ -51,8 +50,13 @@ $(TEST_EXEC): $(OBJ) $(TEST_OBJ) $(GTEST_LIB)
 	$(CXX) $(OBJ) $(TEST_OBJ) $(GTEST_LIB) -o $(TEST_EXEC) -pthread
 
 # 오브젝트 파일 생성 규칙
-%.o: %.cpp
-	$(CXX) $(CXXFLAGS) -c $< -o $@
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
+	@mkdir -p $(dir $@)
+	$(CXX) $(CXXFLAGS) -I$(GTEST_INCLUDE) -c $< -o $@
+
+$(OBJ_DIR)/%.o: $(TEST_DIR)/%.cpp
+	@mkdir -p $(dir $@)
+	$(CXX) $(CXXFLAGS) -I$(GTEST_INCLUDE) -c $< -o $@
 
 # 테스트 실행
 test: $(TEST_EXEC)
@@ -60,5 +64,5 @@ test: $(TEST_EXEC)
 
 # clean 규칙
 clean:
-	rm -f $(OBJ)
-	rm -f $(TARGET)
+	rm -f $(TEST_EXEC)
+	rm -rf $(OBJ_DIR)
