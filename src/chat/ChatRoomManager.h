@@ -11,13 +11,13 @@ class ChatRoomManager {
 public:
     static ChatRoomManager& getInstance();
 
+     ~ChatRoomManager() = default;
+
     std::shared_ptr<ChatRoom> getOrCreateRoom(const std::string& roomName);
     std::shared_ptr<ChatRoom> getRoom(const std::string& roomName);
 
 private:
     ChatRoomManager() = default;
-    ~ChatRoomManager() = default;
-
     ChatRoomManager(const ChatRoomManager&) = delete;
     ChatRoomManager& operator=(const ChatRoomManager&) = delete;
 
