@@ -15,7 +15,11 @@ public:
     std::shared_ptr<ChatRoom> getRoom(const std::string& roomName);
 
 private:
-    ChatRoomManager();
+    ChatRoomManager() = default;
+    ~ChatRoomManager() = default;
+
+    ChatRoomManager(const ChatRoomManager&) = delete;
+    ChatRoomManager& operator=(const ChatRoomManager&) = delete;
 
     std::unordered_map<std::string, std::shared_ptr<ChatRoom>> chatRooms;
     std::mutex managerMutex;

@@ -25,6 +25,8 @@ private:
     MessageDispatcher messageDispatcher;
     
     Server(int port, int workerCount);
+    Server(const Server&) = delete;
+    Server& operator=(const Server&) = delete;
 
 };
 
