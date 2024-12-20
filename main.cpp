@@ -21,10 +21,8 @@ int main(int argc, char* argv[]) {
     try {
         // 서버 종료 시그널
         signal(SIGINT, [](int sig) {
-            Server* server = Server::getInstance(0, 0);
-            if (server != nullptr) {
-                server->terminate();
-            }
+            Server& server = Server::getInstance(0, 0);
+            server.terminate();
             exit(EXIT_SUCCESS);
         });
 
@@ -34,8 +32,8 @@ int main(int argc, char* argv[]) {
         }
 
         // 서버 애플리케이션 실행
-        Server* server = Server::getInstance(port, workerCount);
-        server->run();
+        Server& server = Server::getInstance(port, workerCount);
+        server.run();
 
     } catch (const exception& ex) {
         Logger::error("[Error]: " + string(ex.what()));

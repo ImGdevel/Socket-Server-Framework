@@ -7,7 +7,10 @@
 
 using namespace std;
 
-Server* Server::instance = nullptr;
+Server& Server::getInstance(int port, int workerCount) {
+    static Server instance(port, workerCount);
+    return instance;
+}
 
 Server::Server(int port, int workerCount) : port(port), workerCount(workerCount) {
     TestEventHandler handler;
@@ -21,13 +24,6 @@ Server::Server(int port, int workerCount) : port(port), workerCount(workerCount)
 
 Server::~Server() {
     terminate();
-}
-
-Server* Server::getInstance(int port, int workerCount) {
-    if (instance == nullptr) {
-        instance = new Server(port, workerCount);
-    }
-    return instance;
 }
 
 void Server::run() {
