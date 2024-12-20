@@ -13,6 +13,8 @@ private:
     void onEcho(const std::shared_ptr<ClientSession>& session, const std::string& message) const;
     void onDelay(const std::shared_ptr<ClientSession>& session, const std::string& message) const;
     void onTask(const std::shared_ptr<ClientSession>& session, const std::string& message) const;
+    void onJoinRoom(const std::shared_ptr<ClientSession>& session, const std::string& message) const;
+    void onRoomMessage(const std::shared_ptr<ClientSession>& session, const std::string& message) const;
 };
 
 #endif

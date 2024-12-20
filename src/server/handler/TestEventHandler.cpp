@@ -1,8 +1,10 @@
 #include "TestEventHandler.h"
 #include "Logger.h"
+#include "../chat/ChatRoomManager.h"
 #include <iostream>
 #include <thread>
 #include <chrono>
+#include <sstream>
 
 using namespace std;
 
@@ -61,5 +63,32 @@ void TestEventHandler::onTask(const shared_ptr<ClientSession>& session, const st
         string echoMessage = "TASK: " + message;
         Logger::info("send message : " + echoMessage);
         session->sendMessage(echoMessage);
+    }
+}
+
+void TestEventHandler::onJoinRoom(const shared_ptr<ClientSession>& session, const string& message) const {
+    istringstream iss(message);
+    string roomName;
+    iss >> roomName;
+
+    auto chatRoom = ChatRoomManager::getInstance().getOrCreateRoom(roomName);
+    chatRoom->addClient(session);
+
+    session->setCurrentRoom(chatRoom->getId());
+    session->sendMessage("Joined room: " + chatRoom->getName());
+}
+
+void TestEventHandler::onRoomMessage(const shared_ptr<ClientSession>& session, const string& message) const {
+    auto roomId = session->getCurrentRoom();
+    if (roomId.empty()) {
+        session->sendMessage("You are not in a chat room.");
+        return;
+    }
+
+    auto chatRoom = ChatRoomManager::getInstance().getRoom(roomId);
+    if (chatRoom) {
+        chatRoom->broadcastMessage(message, session);
+    } else {
+        session->sendMessage("The chat room no longer exists.");
     }
 }
