@@ -20,18 +20,17 @@ public:
     bool isProcessing() const;
     void closeSession();
     
+    void setCurrentRoom(const std::string& roomId);
+    std::string getCurrentRoom() const;
 
 private:
-    // 클라이언트 정보
     int clientSocket;
     bool active;
     bool processing;
 
-    // 수신 버퍼
     std::vector<char> receiveBuffer;
 
-    // todo : 소캣 종료 Flag와 소캣 정리 기능 구현
-    // bool isClosed
+    std::string currentRoomId;
 };
 
 #endif

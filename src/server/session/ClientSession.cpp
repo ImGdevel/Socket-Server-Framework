@@ -3,16 +3,19 @@
 #include <iostream>
 #include <arpa/inet.h>
 #include <cstring>
+#include <stdexcept>
+#include <vector>
 
 using namespace std;
 
-ClientSession::ClientSession(int socket) : clientSocket(socket), active(true), processing(false) {
-    if(clientSocket < 0){
-        throw runtime_error("Invalid clinet socket");
+ClientSession::ClientSession(int socket) 
+    : clientSocket(socket), active(true), processing(false) {
+    if (clientSocket < 0) {
+        throw runtime_error("Invalid client socket");
     }
 }
 
-ClientSession::~ClientSession(){
+ClientSession::~ClientSession() {
     closeSession();
 }
 
@@ -20,33 +23,39 @@ int ClientSession::getSocket() const {
     return clientSocket;
 }
 
+//수신 버퍼에 추가
 void ClientSession::appendToBuffer(const char* data, size_t size) {
     receiveBuffer.insert(receiveBuffer.end(), data, data + size);
 }
 
+// 활성화 상태 확인
 bool ClientSession::isActive() const {
     return active;
 }
 
-void ClientSession::setProcessing(bool state){
+// 해당 작업의 작업 상태 지정
+void ClientSession::setProcessing(bool state) {
     processing = state;
 }
 
-bool ClientSession::isProcessing() const{
+// 해당 세션이 작업 상태 확인
+bool ClientSession::isProcessing() const {
     return processing;
 }
 
-void ClientSession::sendMessage(const std::string& message) {
+// 메시지 전송
+void ClientSession::sendMessage(const string& message) {
     uint32_t messageSize = htonl(static_cast<uint32_t>(message.size()));
 
-    std::string sendBuffer(reinterpret_cast<char*>(&messageSize), sizeof(messageSize));
+    string sendBuffer(reinterpret_cast<char*>(&messageSize), sizeof(messageSize));
     sendBuffer += message;
 
     if (send(clientSocket, sendBuffer.c_str(), sendBuffer.size(), 0) < 0) {
-        throw std::runtime_error("Failed to send message");
+        throw runtime_error("Failed to send message");
     }
 }
 
+// 세션 종료
 void ClientSession::closeSession() {
     if (active) {
         close(clientSocket);
@@ -54,24 +63,31 @@ void ClientSession::closeSession() {
     }
 }
 
-bool ClientSession::extractMessage(std::string& message) {
-    // 메시지 헤더를 읽을 수 있을 만큼 데이터가 없음
+// 수신 메시지 파싱
+bool ClientSession::extractMessage(string& message) {
     if (receiveBuffer.size() < sizeof(uint32_t)) {
         return false;
     }
 
-    // 메시지 길이 추출
     uint32_t messageLength = 0;
-    std::memcpy(&messageLength, receiveBuffer.data(), sizeof(uint32_t));
+    memcpy(&messageLength, receiveBuffer.data(), sizeof(uint32_t));
     messageLength = ntohl(messageLength);
 
-    // 메시지 전체가 도착했는지 확인
     if (receiveBuffer.size() < sizeof(uint32_t) + messageLength) {
         return false;
     }
 
-    // 완성된 메시지 추출 및 버퍼에서 제거
-    message = std::string(receiveBuffer.begin() + sizeof(uint32_t), receiveBuffer.begin() + sizeof(uint32_t) + messageLength);
+    message = string(receiveBuffer.begin() + sizeof(uint32_t), receiveBuffer.begin() + sizeof(uint32_t) + messageLength);
     receiveBuffer.erase(receiveBuffer.begin(), receiveBuffer.begin() + sizeof(uint32_t) + messageLength);
     return true;
+}
+
+// 현재 방 ID 설정
+void ClientSession::setCurrentRoom(const string& roomId) {
+    currentRoomId = roomId;
+}
+
+// 현재 방 ID 가져오기
+string ClientSession::getCurrentRoom() const {
+    return currentRoomId;
 }
