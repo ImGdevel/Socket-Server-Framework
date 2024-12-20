@@ -7,7 +7,7 @@
 class Server {
 public:
     //싱글톤
-    static Server* getInstance(int port, int workerCount);
+    static Server& getInstance(int port, int workerCount);
 
     ~Server();
 
