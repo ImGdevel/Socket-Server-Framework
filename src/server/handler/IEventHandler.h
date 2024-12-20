@@ -1,7 +1,7 @@
 #ifndef IEVENTHANDLER_H
 #define IEVENTHANDLER_H
 
-#include "../common/HandlerTypes.h"
+#include "HandlerTypes.h"
 #include <unordered_map>
 
 class IEventHandler {
