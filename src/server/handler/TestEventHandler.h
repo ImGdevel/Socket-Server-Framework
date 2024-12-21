@@ -15,9 +15,10 @@ private:
     void onTask(const std::shared_ptr<ClientSession>& session, const std::string& message) const;
     void onJoinRoom(const std::shared_ptr<ClientSession>& session, const std::string& message) const;
     void onRoomMessage(const std::shared_ptr<ClientSession>& session, const std::string& message) const;
-    void onListRooms(const std::shared_ptr<ClientSession>& session) const;
+    void onListRooms(const std::shared_ptr<ClientSession>& session, const std::string& message) const;
+    void onCreateRoom(const std::shared_ptr<ClientSession>& session, const std::string& message) const;
     void onRemoveRoom(const std::shared_ptr<ClientSession>& session, const std::string& message) const;
-    void onLeaveRoom(const std::shared_ptr<ClientSession>& session) const;
+    void onLeaveRoom(const std::shared_ptr<ClientSession>& session, const std::string& message) const;
 };
 
 #endif
