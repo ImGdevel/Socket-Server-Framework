@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <memory>
 #include <mutex>
+#include <vector>
 #include "ChatRoom.h"
 
 class ChatRoomManager {
@@ -14,7 +15,10 @@ public:
      ~ChatRoomManager() = default;
 
     std::shared_ptr<ChatRoom> getOrCreateRoom(const std::string& roomName);
-    std::shared_ptr<ChatRoom> getRoom(const std::string& roomName);
+    std::shared_ptr<ChatRoom> getRoom(const std::string& roomId);
+    std::vector<std::string> getRooms();
+    bool removeRoom(const std::string& roomId);
+
 
 private:
     ChatRoomManager() = default;

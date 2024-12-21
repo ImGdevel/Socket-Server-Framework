@@ -92,3 +92,42 @@ void TestEventHandler::onRoomMessage(const shared_ptr<ClientSession>& session, c
         session->sendMessage("The chat room no longer exists.");
     }
 }
+
+void TestEventHandler::onListRooms(const std::shared_ptr<ClientSession>& session) const {
+    auto roomIds = ChatRoomManager::getInstance().getRooms();
+    std::string response = "Available rooms: ";
+    for (const auto& id : roomIds) {
+        response += id + " ";
+    }
+    session->sendMessage(response.empty() ? "No rooms available." : response);
+}
+
+void TestEventHandler::onRemoveRoom(const std::shared_ptr<ClientSession>& session, const std::string& message) const {
+    std::istringstream iss(message);
+    std::string roomId;
+    iss >> roomId;
+
+    if (ChatRoomManager::getInstance().removeRoom(roomId)) {
+        session->sendMessage("Room " + roomId + " removed successfully.");
+    } else {
+        session->sendMessage("Room " + roomId + " not found or cannot be removed.");
+    }
+}
+
+
+void TestEventHandler::onLeaveRoom(const std::shared_ptr<ClientSession>& session) const {
+    auto currentRoomId = session->getCurrentRoom();
+    if (currentRoomId.empty()) {
+        session->sendMessage("You are not in any room.");
+        return;
+    }
+
+    auto chatRoom = ChatRoomManager::getInstance().getRoom(currentRoomId);
+    if (chatRoom) {
+        chatRoom->removeClient(session);
+        session->setCurrentRoom("");
+        session->sendMessage("You have left the room: " + chatRoom->getName());
+    } else {
+        session->sendMessage("The room no longer exists.");
+    }
+}
