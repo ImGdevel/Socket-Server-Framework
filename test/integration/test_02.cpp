@@ -27,7 +27,7 @@ void logError(const string& logMessage) {
     tm* localTime = localtime(&now);
 
     stringstream fileNameStream;
-    fileNameStream << put_time(localTime, "%Y-%m-%d") << "-log.txt";
+    fileNameStream << put_time(localTime, "%Y-%m-%d") << ".log";
     string fileName = fileNameStream.str();
 
     ofstream logFile(fileName, ios::app);

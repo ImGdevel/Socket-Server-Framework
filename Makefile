@@ -17,7 +17,7 @@ APP_DIR = $(SRC_DIR)/server
 TEST_DIR = tests/unit
 
 # 소스 파일
-SRC = src/main.cpp \
+SRC = $(SRC_DIR)/main.cpp \
       $(APP_DIR)/Server.cpp \
       $(APP_DIR)/reactor/Reactor.cpp \
       $(APP_DIR)/reactor/Worker.cpp \
