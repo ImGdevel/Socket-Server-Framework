@@ -9,6 +9,9 @@
 #include <vector>
 #include <unordered_map>
 #include <functional>
+#include <fstream>
+#include <iomanip>
+#include <sstream>
 
 #define SERVER_PORT 8080
 #define SERVER_IP "127.0.0.1"
@@ -17,9 +20,26 @@
 
 using namespace std;
 
-void errorExit(const std::string& message) {
-    perror(message.c_str());
-    exit(EXIT_FAILURE);
+void logError(const string& logMessage) {
+    time_t now = time(nullptr);
+    tm* localTime = localtime(&now);
+
+    stringstream fileNameStream;
+    fileNameStream << put_time(localTime, "%Y-%m-%d") << "-log.txt";
+    string fileName = fileNameStream.str();
+
+    ofstream logFile(fileName, ios::app);
+    if (logFile.is_open()) {
+        logFile << put_time(localTime, "%H:%M:%S") << " " << logMessage << endl;
+        logFile.close();
+    }
+}
+
+void handleError(const string& errorMessage, int socket) {
+    stringstream logStream;
+    logStream << "Socket " << socket << " Error: " << errorMessage;
+    logError(logStream.str());
+    cerr << logStream.str() << endl;
 }
 
 // 정확한 크기의 데이터를 송신
@@ -49,35 +69,46 @@ ssize_t recvAll(int socket, char* buffer, size_t length) {
 }
 
 // 메시지 송신 로직
-void sendMessage(int socket, const string& message) {
-    uint32_t messageLength = htonl(message.size());
-    char buffer[BUFFER_SIZE] = {0};
-    memcpy(buffer, &messageLength, sizeof(messageLength));
-    memcpy(buffer + sizeof(messageLength), message.c_str(), message.size());
+bool sendMessage(int socket, const string& message) {
+    try {
+        uint32_t messageLength = htonl(message.size());
+        char buffer[BUFFER_SIZE] = {0};
+        memcpy(buffer, &messageLength, sizeof(messageLength));
+        memcpy(buffer + sizeof(messageLength), message.c_str(), message.size());
 
-    if (sendAll(socket, buffer, sizeof(messageLength) + message.size()) < 0) {
-        errorExit("Failed to send message");
+        if (sendAll(socket, buffer, sizeof(messageLength) + message.size()) < 0) {
+            throw runtime_error("Failed to send message");
+        }
+        return true;
+    } catch (const exception& e) {
+        handleError(e.what(), socket);
+        return false;
     }
 }
 
 // 메시지 수신 로직
 string receiveMessage(int socket) {
-    uint32_t receivedMessageLength = 0;
-    if (recvAll(socket, (char*)&receivedMessageLength, sizeof(receivedMessageLength)) <= 0) {
-        errorExit("Failed to receive message length");
-    }
-    receivedMessageLength = ntohl(receivedMessageLength);
+    try {
+        uint32_t receivedMessageLength = 0;
+        if (recvAll(socket, (char*)&receivedMessageLength, sizeof(receivedMessageLength)) <= 0) {
+            throw runtime_error("Failed to receive message length");
+        }
+        receivedMessageLength = ntohl(receivedMessageLength);
 
-    if (receivedMessageLength > BUFFER_SIZE - 1) {
-        errorExit("Received message is too large");
-    }
+        if (receivedMessageLength > BUFFER_SIZE - 1) {
+            throw runtime_error("Received message is too large");
+        }
 
-    char response[BUFFER_SIZE] = {0};
-    if (recvAll(socket, response, receivedMessageLength) <= 0) {
-        errorExit("Failed to receive message");
-    }
+        char response[BUFFER_SIZE] = {0};
+        if (recvAll(socket, response, receivedMessageLength) <= 0) {
+            throw runtime_error("Failed to receive message");
+        }
 
-    return string(response, receivedMessageLength);
+        return string(response, receivedMessageLength);
+    } catch (const exception& e) {
+        handleError(e.what(), socket);
+        return "";
+    }
 }
 
 // 메시지 파싱 유틸리티
@@ -118,9 +149,12 @@ std::string generateRandomContent() {
 using Handler = function<void(int, const string&)>;
 
 void handleEcho(int socket, const string& message) {
-    sendMessage(socket, message);
-    string response = receiveMessage(socket);
-    cout << "ECHO Response: " << response << endl;
+    if (sendMessage(socket, message)) {
+        string response = receiveMessage(socket);
+        if (!response.empty()) {
+            cout << "ECHO Response: " << response << endl;
+        }
+    }
 }
 
 void handleChat(int socket, const string& message) {
@@ -148,18 +182,23 @@ void runClient(int clientId) {
 
     int clientSocket = socket(AF_INET, SOCK_STREAM, 0);
     if (clientSocket < 0) {
-        errorExit("Socket creation failed");
+        handleError("Socket creation failed", clientSocket);
+        return;
     }
 
     sockaddr_in serverAddr{};
     serverAddr.sin_family = AF_INET;
     serverAddr.sin_port = htons(SERVER_PORT);
     if (inet_pton(AF_INET, SERVER_IP, &serverAddr.sin_addr) <= 0) {
-        errorExit("Invalid address or address not supported");
+        handleError("Invalid address or address not supported", clientSocket);
+        close(clientSocket);
+        return;
     }
 
     if (connect(clientSocket, (struct sockaddr*)&serverAddr, sizeof(serverAddr)) < 0) {
-        errorExit("Connection to server failed");
+        handleError("Connection to server failed", clientSocket);
+        close(clientSocket);
+        return;
     }
     cout << "Client " << clientId << " connected to server." << endl;
 
@@ -172,18 +211,22 @@ void runClient(int clientId) {
     eventHandlers["DELAY"] = handleDelay;
 
     while (true) {
-        string type = generateRandomType();
-        string content = generateRandomContent();
-        string message = composeMessage(type, content);
-        auto [parsedType, parsedContent] = parseMessage(message);
+        try {
+            string type = generateRandomType();
+            string content = generateRandomContent();
+            string message = composeMessage(type, content);
+            auto [parsedType, parsedContent] = parseMessage(message);
 
-        if (eventHandlers.find(parsedType) != eventHandlers.end()) {
-            eventHandlers[parsedType](clientSocket, message);
-        } else {
-            cout << "Unhandled event type: " << parsedType << endl;
+            if (eventHandlers.find(parsedType) != eventHandlers.end()) {
+                eventHandlers[parsedType](clientSocket, message);
+            } else {
+                cout << "Unhandled event type: " << parsedType << endl;
+            }
+
+            sleep(1);
+        } catch (const exception& e) {
+            handleError(e.what(), clientSocket);
         }
-
-        sleep(1);
     }
 
     close(clientSocket);
