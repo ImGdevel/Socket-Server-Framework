@@ -123,40 +123,60 @@ std::string composeMessage(const string& type, const string& content) {
     return type + ":" + content;
 }
 
-using Handler = function<void(int)>;
+using REQHandler = function<void(int)>;
 
 void handleEcho(int socket) {
-    if (sendMessage(socket, "ECHO:")) {
+    if (sendMessage(socket, "ECHO: Echo")) {
         //cout << "ECHO handler executed." << endl;
     }
 }
 
 void handleChat(int socket) {
-    if (sendMessage(socket, "CHAT:")) {
+    if (sendMessage(socket, "CHAT: Chat")) {
         //cout << "CHAT handler executed." << endl;
     }
 }
 
 void handleLogin(int socket) {
-    if (sendMessage(socket, "LOGIN:")) {
+    if (sendMessage(socket, "LOGIN: Login")) {
         //cout << "LOGIN handler executed." << endl;
     }
 }
 
 void handleTask(int socket) {
-    if (sendMessage(socket, "TASK:")) {
+    if (sendMessage(socket, "TASK: Task")) {
         //cout << "TASK handler executed." << endl;
     }
 }
 
 void handleDelay(int socket) {
-    if (sendMessage(socket, "DELAY:")) {
+    if (sendMessage(socket, "DELAY: Delay")) {
         //cout << "DELAY handler executed." << endl;
         sleep(2);
     }
 }
 
+using REPHandler = function<void(const string&)>;
+
+unordered_map<string, REPHandler> eventHandlers;
+
+void handleMessage(const string& message) {
+    cout << "MSG Event: " << message << "\n";
+}
+
+void handleRooms(const string& message) {
+    cout << "ROOMS Event: " << message << "\n";
+}
+
+void registerEventHandlers() {
+    eventHandlers["MSG"] = handleMessage;
+    eventHandlers["ROOMS"] = handleRooms;
+}
+
+
 void receiveLoop(int epollFd, unordered_map<int, string>& sockets) {
+    registerEventHandlers();
+
     epoll_event events[MAX_EVENTS];
     while (true) {
         int numEvents = epoll_wait(epollFd, events, MAX_EVENTS, -1);
@@ -165,6 +185,13 @@ void receiveLoop(int epollFd, unordered_map<int, string>& sockets) {
             string message = receiveMessage(clientSocket);
             if (!message.empty()) {
                 cout << "Received from socket " << clientSocket << ": " << message << endl;
+                auto [type, content] = parseMessage(message);
+
+                if (eventHandlers.find(type) != eventHandlers.end()) {
+                    eventHandlers[type](content);
+                } else {
+                    cerr << "Unknown event type: " << type << endl;
+                }
             } else {
                 close(clientSocket);
                 sockets.erase(clientSocket);
@@ -172,6 +199,7 @@ void receiveLoop(int epollFd, unordered_map<int, string>& sockets) {
         }
     }
 }
+
 
 void sendLoop(int socket) {
     static vector<void(*)(int)> handlers = {handleEcho, handleChat, handleLogin, handleTask, handleDelay};
@@ -243,6 +271,7 @@ void runClient(int clientId) {
 
 int main() {
     vector<thread> clientThreads;
+    registerEventHandlers();
 
     for (int i = 0; i < NUM_CLIENTS; ++i) {
         clientThreads.emplace_back(runClient, i + 1);

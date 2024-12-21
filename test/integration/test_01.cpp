@@ -127,7 +127,7 @@ std::string composeMessage(const string& type, const string& content) {
 }
 
 // 커스텀 흐름 핸들러를 위한 타입 정의
-using Handler = function<void(int)>;
+using REQHandler = function<void(int)>;
 
 void handleEcho(int socket) {
     if (sendMessage(socket, "ECHO:")) {
@@ -188,7 +188,7 @@ void runClient(int clientId) {
     }
     cout << "Client " << clientId << " connected to server." << endl;
 
-    unordered_map<string, Handler> eventHandlers;
+    unordered_map<string, REQHandler> eventHandlers;
 
     eventHandlers["ECHO"] = handleEcho;
     eventHandlers["CHAT"] = handleChat;
