@@ -20,8 +20,6 @@ unordered_map<string, HandlerFunc> TestEventHandler::createHandlers() const {
 
 void TestEventHandler::onLogin(const shared_ptr<ClientSession>& session, const string& message) const {
     if (session) {
-        std::this_thread::sleep_for(std::chrono::seconds(10));
-
         string echoMessage = "LOGIN: " + message;
         Logger::info("send message : " + echoMessage);
         session->sendMessage(echoMessage);
@@ -30,8 +28,6 @@ void TestEventHandler::onLogin(const shared_ptr<ClientSession>& session, const s
 
 void TestEventHandler::onChat(const shared_ptr<ClientSession>& session, const string& message) const {
     if (session) {
-        std::this_thread::sleep_for(std::chrono::microseconds(100));
-
         string echoMessage = "CHAT: " + message;
         Logger::info("send message : " + echoMessage);
         session->sendMessage(echoMessage);
@@ -48,18 +44,15 @@ void TestEventHandler::onEcho(const shared_ptr<ClientSession>& session, const st
 
 void TestEventHandler::onDelay(const shared_ptr<ClientSession>& session, const string& message) const {
     if (session) {
-        std::this_thread::sleep_for(std::chrono::seconds(1));
-
         string echoMessage = "DELAY: " + message;
         Logger::info("send message : " + echoMessage);
+        this_thread::sleep_for(chrono::seconds(1));
         session->sendMessage(echoMessage);
     }
 }
 
 void TestEventHandler::onTask(const shared_ptr<ClientSession>& session, const string& message) const {
     if (session) {
-        std::this_thread::sleep_for(std::chrono::seconds(3));
-
         string echoMessage = "TASK: " + message;
         Logger::info("send message : " + echoMessage);
         session->sendMessage(echoMessage);
@@ -67,67 +60,77 @@ void TestEventHandler::onTask(const shared_ptr<ClientSession>& session, const st
 }
 
 void TestEventHandler::onJoinRoom(const shared_ptr<ClientSession>& session, const string& message) const {
-    istringstream iss(message);
-    string roomName;
-    iss >> roomName;
+    if (session) {
+        istringstream iss(message);
+        string roomName;
+        iss >> roomName;
 
-    auto chatRoom = ChatRoomManager::getInstance().getOrCreateRoom(roomName);
-    chatRoom->addClient(session);
+        auto chatRoom = ChatRoomManager::getInstance().getOrCreateRoom(roomName);
+        chatRoom->addClient(session);
 
-    session->setCurrentRoom(chatRoom->getId());
-    session->sendMessage("Joined room: " + chatRoom->getName());
+        session->setCurrentRoom(chatRoom->getId());
+        session->sendMessage("Joined room: " + chatRoom->getName());
+    }
 }
 
 void TestEventHandler::onRoomMessage(const shared_ptr<ClientSession>& session, const string& message) const {
-    auto roomId = session->getCurrentRoom();
-    if (roomId.empty()) {
-        session->sendMessage("You are not in a chat room.");
-        return;
-    }
+    if (session) {
+        auto roomId = session->getCurrentRoom();
+        if (roomId.empty()) {
+            session->sendMessage("You are not in a chat room.");
+            return;
+        }
 
-    auto chatRoom = ChatRoomManager::getInstance().getRoom(roomId);
-    if (chatRoom) {
-        chatRoom->broadcastMessage(message, session);
-    } else {
-        session->sendMessage("The chat room no longer exists.");
+        auto chatRoom = ChatRoomManager::getInstance().getRoom(roomId);
+        if (chatRoom) {
+            chatRoom->broadcastMessage(message, session);
+        } else {
+            session->sendMessage("The chat room no longer exists.");
+        }
     }
 }
 
 void TestEventHandler::onListRooms(const std::shared_ptr<ClientSession>& session) const {
-    auto roomIds = ChatRoomManager::getInstance().getRooms();
-    std::string response = "Available rooms: ";
-    for (const auto& id : roomIds) {
-        response += id + " ";
+    if (session) {
+        auto roomIds = ChatRoomManager::getInstance().getRooms();
+        std::string response = "Available rooms: ";
+        for (const auto& id : roomIds) {
+            response += id + " ";
+        }
+        session->sendMessage(response.empty() ? "No rooms available." : response);
     }
-    session->sendMessage(response.empty() ? "No rooms available." : response);
 }
 
 void TestEventHandler::onRemoveRoom(const std::shared_ptr<ClientSession>& session, const std::string& message) const {
-    std::istringstream iss(message);
-    std::string roomId;
-    iss >> roomId;
+    if (session) {
+        std::istringstream iss(message);
+        std::string roomId;
+        iss >> roomId;
 
-    if (ChatRoomManager::getInstance().removeRoom(roomId)) {
-        session->sendMessage("Room " + roomId + " removed successfully.");
-    } else {
-        session->sendMessage("Room " + roomId + " not found or cannot be removed.");
+        if (ChatRoomManager::getInstance().removeRoom(roomId)) {
+            session->sendMessage("Room " + roomId + " removed successfully.");
+        } else {
+            session->sendMessage("Room " + roomId + " not found or cannot be removed.");
+        }
     }
 }
 
 
 void TestEventHandler::onLeaveRoom(const std::shared_ptr<ClientSession>& session) const {
-    auto currentRoomId = session->getCurrentRoom();
-    if (currentRoomId.empty()) {
-        session->sendMessage("You are not in any room.");
-        return;
-    }
+    if (session) {
+        auto currentRoomId = session->getCurrentRoom();
+        if (currentRoomId.empty()) {
+            session->sendMessage("You are not in any room.");
+            return;
+        }
 
-    auto chatRoom = ChatRoomManager::getInstance().getRoom(currentRoomId);
-    if (chatRoom) {
-        chatRoom->removeClient(session);
-        session->setCurrentRoom("");
-        session->sendMessage("You have left the room: " + chatRoom->getName());
-    } else {
-        session->sendMessage("The room no longer exists.");
+        auto chatRoom = ChatRoomManager::getInstance().getRoom(currentRoomId);
+        if (chatRoom) {
+            chatRoom->removeClient(session);
+            session->setCurrentRoom("");
+            session->sendMessage("You have left the room: " + chatRoom->getName());
+        } else {
+            session->sendMessage("The room no longer exists.");
+        }
     }
 }
