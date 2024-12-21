@@ -12,11 +12,13 @@
 #include <fstream>
 #include <iomanip>
 #include <sstream>
+#include <sys/epoll.h>
 
 #define SERVER_PORT 8080
 #define SERVER_IP "127.0.0.1"
 #define BUFFER_SIZE 1024
-#define NUM_CLIENTS 20
+#define NUM_CLIENTS 500
+#define MAX_EVENTS 10
 
 using namespace std;
 
@@ -42,33 +44,30 @@ void handleError(const string& errorMessage, int socket) {
     cerr << logStream.str() << endl;
 }
 
-// 정확한 크기의 데이터를 송신
 ssize_t sendAll(int socket, const char* buffer, size_t length) {
     size_t totalSent = 0;
     while (totalSent < length) {
         ssize_t sent = send(socket, buffer + totalSent, length - totalSent, 0);
         if (sent <= 0) {
-            return sent; // 오류 발생
+            return sent;
         }
         totalSent += sent;
     }
     return totalSent;
 }
 
-// 정확한 크기의 데이터를 수신
 ssize_t recvAll(int socket, char* buffer, size_t length) {
     size_t totalReceived = 0;
     while (totalReceived < length) {
         ssize_t received = recv(socket, buffer + totalReceived, length - totalReceived, 0);
         if (received <= 0) {
-            return received; // 오류 발생
+            return received;
         }
         totalReceived += received;
     }
     return totalReceived;
 }
 
-// 메시지 송신 로직
 bool sendMessage(int socket, const string& message) {
     try {
         uint32_t messageLength = htonl(message.size());
@@ -86,7 +85,6 @@ bool sendMessage(int socket, const string& message) {
     }
 }
 
-// 메시지 수신 로직
 string receiveMessage(int socket) {
     try {
         uint32_t receivedMessageLength = 0;
@@ -111,11 +109,10 @@ string receiveMessage(int socket) {
     }
 }
 
-// 메시지 파싱 유틸리티
 pair<string, string> parseMessage(const string& message) {
     size_t delimiterPos = message.find(":");
     if (delimiterPos == string::npos) {
-        return {"", ""}; // 잘못된 메시지 형식
+        return {"", ""};
     }
     string type = message.substr(0, delimiterPos);
     string content = message.substr(delimiterPos + 1);
@@ -126,40 +123,67 @@ std::string composeMessage(const string& type, const string& content) {
     return type + ":" + content;
 }
 
-// 커스텀 흐름 핸들러를 위한 타입 정의
 using Handler = function<void(int)>;
 
 void handleEcho(int socket) {
     if (sendMessage(socket, "ECHO:")) {
-        string response = receiveMessage(socket);
-        if (!response.empty()) {
-            cout << "ECHO Response: " << response << endl;
-        }
+        //cout << "ECHO handler executed." << endl;
     }
 }
 
 void handleChat(int socket) {
     if (sendMessage(socket, "CHAT:")) {
-        cout << "CHAT handler executed." << endl;
+        //cout << "CHAT handler executed." << endl;
     }
 }
 
 void handleLogin(int socket) {
     if (sendMessage(socket, "LOGIN:")) {
-        cout << "LOGIN handler executed." << endl;
+        //cout << "LOGIN handler executed." << endl;
     }
 }
 
 void handleTask(int socket) {
     if (sendMessage(socket, "TASK:")) {
-        cout << "TASK handler executed." << endl;
+        //cout << "TASK handler executed." << endl;
     }
 }
 
 void handleDelay(int socket) {
     if (sendMessage(socket, "DELAY:")) {
-        cout << "DELAY handler executed." << endl;
-        sleep(2); // 2초 지연
+        //cout << "DELAY handler executed." << endl;
+        sleep(2);
+    }
+}
+
+void receiveLoop(int epollFd, unordered_map<int, string>& sockets) {
+    epoll_event events[MAX_EVENTS];
+    while (true) {
+        int numEvents = epoll_wait(epollFd, events, MAX_EVENTS, -1);
+        for (int i = 0; i < numEvents; ++i) {
+            int clientSocket = events[i].data.fd;
+            string message = receiveMessage(clientSocket);
+            if (!message.empty()) {
+                cout << "Received from socket " << clientSocket << ": " << message << endl;
+            } else {
+                close(clientSocket);
+                sockets.erase(clientSocket);
+            }
+        }
+    }
+}
+
+void sendLoop(int socket) {
+    static vector<void(*)(int)> handlers = {handleEcho, handleChat, handleLogin, handleTask, handleDelay};
+
+    srand(static_cast<unsigned>(time(nullptr)));
+
+    while (true) {
+        int randomIndex = rand() % handlers.size();
+        handlers[randomIndex](socket);
+
+        int delay = rand() % 1001;
+        this_thread::sleep_for(chrono::milliseconds(delay));
     }
 }
 
@@ -188,24 +212,31 @@ void runClient(int clientId) {
     }
     cout << "Client " << clientId << " connected to server." << endl;
 
-    unordered_map<string, Handler> eventHandlers;
-
-    eventHandlers["ECHO"] = handleEcho;
-    eventHandlers["CHAT"] = handleChat;
-    eventHandlers["LOGIN"] = handleLogin;
-    eventHandlers["TASK"] = handleTask;
-    eventHandlers["DELAY"] = handleDelay;
-
-    while (true) {
-        try {
-            for (const auto& [type, handler] : eventHandlers) {
-                handler(clientSocket);
-                sleep(1);
-            }
-        } catch (const exception& e) {
-            handleError(e.what(), clientSocket);
-        }
+    int epollFd = epoll_create1(0);
+    if (epollFd < 0) {
+        handleError("Failed to create epoll instance", clientSocket);
+        close(clientSocket);
+        return;
     }
+
+    epoll_event event{};
+    event.events = EPOLLIN;
+    event.data.fd = clientSocket;
+    if (epoll_ctl(epollFd, EPOLL_CTL_ADD, clientSocket, &event) < 0) {
+        handleError("Failed to add socket to epoll", clientSocket);
+        close(clientSocket);
+        close(epollFd);
+        return;
+    }
+
+    unordered_map<int, string> sockets;
+    sockets[clientSocket] = "";
+
+    thread receiveThread(receiveLoop, epollFd, ref(sockets));
+    thread sendThread(sendLoop, clientSocket);
+
+    receiveThread.join();
+    sendThread.join();
 
     close(clientSocket);
 }
