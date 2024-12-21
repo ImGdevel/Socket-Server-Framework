@@ -6,26 +6,42 @@
 #include <cstring>
 #include <cerrno>
 
-enum LogLevel { DEBUG ,INFO, WARNING, ERROR };
+enum LogLevel { DEBUG, INFO, WARNING, ERROR };
 
 class Logger {
+private:
+    static LogLevel logLevel;
+
 public:
+    static void setLogLevel(LogLevel level) {
+        logLevel = level;
+    }
 
     static void debug(const std::string& message) {
-        std::cout << "[DEBUG] " << message << std::endl;
+        if (logLevel <= DEBUG) {
+            std::cout << "[DEBUG] " << message << std::endl;
+        }
     }
 
     static void info(const std::string& message) {
-        std::cout << "[INFO] " << message << std::endl;
+        if (logLevel <= INFO) {
+            std::cout << "[INFO] " << message << std::endl;
+        }
     }
 
     static void warning(const std::string& message) {
-        std::cerr << "[WARNING] " << message << std::endl;
+        if (logLevel <= WARNING) {
+            std::cerr << "[WARNING] " << message << std::endl;
+        }
     }
 
     static void error(const std::string& message) {
-        std::cerr << "[ERROR] " << message << std::endl;
+        if (logLevel <= ERROR) {
+            std::cerr << "[ERROR] " << message << std::endl;
+        }
     }
 };
+
+LogLevel Logger::logLevel = DEBUG;
 
 #endif
