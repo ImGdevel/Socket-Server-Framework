@@ -146,9 +146,10 @@ std::string generateRandomContent() {
 }
 
 // 커스텀 흐름 핸들러를 위한 타입 정의
-using Handler = function<void(int, const string&)>;
+using Handler = function<void(int)>;
 
-void handleEcho(int socket, const string& message) {
+void handleEcho(int socket) {
+    string message = composeMessage("ECHO", generateRandomContent());
     if (sendMessage(socket, message)) {
         string response = receiveMessage(socket);
         if (!response.empty()) {
@@ -157,22 +158,26 @@ void handleEcho(int socket, const string& message) {
     }
 }
 
-void handleChat(int socket, const string& message) {
+void handleChat(int socket) {
+    string message = composeMessage("CHAT", generateRandomContent());
     cout << "CHAT handler: " << message << endl;
     // 추가 데이터 처리 로직 가능
 }
 
-void handleLogin(int socket, const string& message) {
+void handleLogin(int socket) {
+    string message = composeMessage("LOGIN", generateRandomContent());
     cout << "LOGIN handler: " << message << endl;
     // 로그인 로직 구현 가능
 }
 
-void handleTask(int socket, const string& message) {
+void handleTask(int socket) {
+    string message = composeMessage("TASK", generateRandomContent());
     cout << "TASK handler: " << message << endl;
     // 작업 처리 로직 구현 가능
 }
 
-void handleDelay(int socket, const string& message) {
+void handleDelay(int socket) {
+    string message = composeMessage("DELAY", generateRandomContent());
     cout << "DELAY handler: " << message << endl;
     sleep(2); // 2초 지연
 }
@@ -213,14 +218,11 @@ void runClient(int clientId) {
     while (true) {
         try {
             string type = generateRandomType();
-            string content = generateRandomContent();
-            string message = composeMessage(type, content);
-            auto [parsedType, parsedContent] = parseMessage(message);
 
-            if (eventHandlers.find(parsedType) != eventHandlers.end()) {
-                eventHandlers[parsedType](clientSocket, message);
+            if (eventHandlers.find(type) != eventHandlers.end()) {
+                eventHandlers[type](clientSocket);
             } else {
-                cout << "Unhandled event type: " << parsedType << endl;
+                cout << "Unhandled event type: " << type << endl;
             }
 
             sleep(1);
