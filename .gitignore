@@ -8,3 +8,7 @@
 *.o
 /build/obj
 /build/obj/*
+
+# 로그 파일
+*.log
+*/log
