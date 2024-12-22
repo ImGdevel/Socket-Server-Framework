@@ -6,18 +6,26 @@ CXXFLAGS = -std=c++17 -Wall -g
 TARGET = build/server
 TEST_EXEC = build/test
 
-# Google Test 설정
-GTEST_DIR = external/googletest
+# 외부 라이브러리 설정
+EXTERNAL_DIR = external
+
+### google test
+GTEST_DIR = $(EXTERNAL_DIR)/googletest
 GTEST_LIB = $(GTEST_DIR)/build/lib/libgtest.a
 GTEST_INCLUDE = $(GTEST_DIR)/googletest/include
+
+### json
+RAPIDJSON_DIR = $(EXTERNAL_DIR)/rapidjson
+RAPIDJSON_INCLUDE = $(RAPIDJSON_DIR)/include
 
 # 소스 및 테스트 파일 경로
 SRC_DIR = src
 APP_DIR = $(SRC_DIR)/server
+UTILS_DIR = $(SRC_DIR)/utils
 TEST_DIR = tests/unit
 
 # 인클루드 및 유틸리티 경로 설정
-INCLUDE_DIRS = include src/utils $(GTEST_INCLUDE)
+INCLUDE_DIRS = $(UTILS_DIR) $(EXTERNAL_DIR) $(GTEST_INCLUDE) $(RAPIDJSON_INCLUDE)
 
 # 소스 파일
 SRC = $(SRC_DIR)/main.cpp \
