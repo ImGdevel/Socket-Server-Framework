@@ -71,8 +71,7 @@ $(GTEST_LIB):
 		echo "Google Test not found. Downloading..."; \
 		git clone --depth=1 https://github.com/google/googletest.git $(GTEST_DIR); \
 		rm -rf $(GTEST_DIR)/.git; \
-		cmake -S $(GTEST_DIR) -B $(GTEST_DIR)/build; \
-		cmake --build $(GTEST_DIR)/build; \
+		cd $(GTEST_DIR) && make; \
 	fi
 
 $(RAPIDJSON_INCLUDE):
@@ -111,7 +110,7 @@ $(TARGET): $(OBJ) $(GTEST_LIB) $(RAPIDJSON_INCLUDE) $(PROTOBUF_LIB) $(XML_LIB)
 
 # 테스트 실행 파일 빌드
 $(TEST_EXEC): $(OBJ) $(TEST_OBJ) $(GTEST_LIB) $(RAPIDJSON_INCLUDE) $(PROTOBUF_LIB) $(XML_LIB)
-	$(CXX) $(OBJ) $(TEST_OBJ) $(GTEST_LIB) -o $(TEST_EXEC) -pthread -lprotobuf -lxml2
+	$(CXX) $(OBJ) $(TEST_OBJ) $(GTEST_LIB) -o $(TEST_EXEC) -pthread -lprotobuf -lxml2 -lgtest
 
 # 오브젝트 파일 생성 규칙
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
@@ -131,10 +130,10 @@ clean:
 	rm -f $(TEST_EXEC)
 	rm -rf $(OBJ_DIR)
 
-clean_external:
+clean-external:
 	rm -rf $(EXTERNAL_DIR)
 
-clean_all:
+clean-all:
 	rm -f $(TEST_EXEC)
 	rm -rf $(OBJ_DIR)
 	rm -rf $(EXTERNAL_DIR)
