@@ -97,8 +97,14 @@ test: $(TEST_EXEC)
 clean:
 	rm -f $(TEST_EXEC)
 	rm -rf $(OBJ_DIR)
-	rm -rf $(GTEST_DIR)/build
-	rm -rf $(RAPIDJSON_DIR)
+
+clean_external:
+	rm -rf $(EXTERNAL_DIR)
+
+clean_all:
+	rm -f $(TEST_EXEC)
+	rm -rf $(OBJ_DIR)
+	rm -rf $(EXTERNAL_DIR)
 
 # 다운로드 및 빌드 타겟
 download: $(GTEST_LIB) $(RAPIDJSON_INCLUDE)
