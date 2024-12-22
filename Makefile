@@ -1,6 +1,6 @@
 # 컴파일러 설정
 CXX = g++
-CXXFLAGS = -std=c++17 -Wall -g -Iinclude -Isrc/utils -Iexternal/googletest/googletest/include
+CXXFLAGS = -std=c++17 -Wall -g
 
 # 타겟 설정
 TARGET = build/server
@@ -15,6 +15,9 @@ GTEST_INCLUDE = $(GTEST_DIR)/googletest/include
 SRC_DIR = src
 APP_DIR = $(SRC_DIR)/server
 TEST_DIR = tests/unit
+
+# 인클루드 및 유틸리티 경로 설정
+INCLUDE_DIRS = include src/utils $(GTEST_INCLUDE)
 
 # 소스 파일
 SRC = $(SRC_DIR)/main.cpp \
@@ -38,6 +41,9 @@ OBJ_DIR = build/obj
 OBJ = $(SRC:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
 TEST_OBJ = $(TEST_SRC:$(TEST_DIR)/%.cpp=$(OBJ_DIR)/%.o)
 
+# 인클루드 경로 설정 (동적으로 추가)
+INCLUDES = $(addprefix -I, $(INCLUDE_DIRS))
+
 # 기본 타겟: 서버 빌드
 all: $(TARGET)
 
@@ -52,11 +58,11 @@ $(TEST_EXEC): $(OBJ) $(TEST_OBJ) $(GTEST_LIB)
 # 오브젝트 파일 생성 규칙
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 	@mkdir -p $(dir $@)
-	$(CXX) $(CXXFLAGS) -I$(GTEST_INCLUDE) -c $< -o $@
+	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
 
 $(OBJ_DIR)/%.o: $(TEST_DIR)/%.cpp
 	@mkdir -p $(dir $@)
-	$(CXX) $(CXXFLAGS) -I$(GTEST_INCLUDE) -c $< -o $@
+	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
 
 # 테스트 실행
 test: $(TEST_EXEC)
