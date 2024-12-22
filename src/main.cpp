@@ -23,6 +23,7 @@ int main(int argc, char* argv[]) {
         signal(SIGINT, [](int sig) {
             Server& server = Server::getInstance(0, 0);
             server.terminate();
+            Logger::close();
             exit(EXIT_SUCCESS);
         });
 

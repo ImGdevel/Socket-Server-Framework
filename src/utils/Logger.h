@@ -197,7 +197,6 @@ public:
         if (logThread.joinable()) {
             logThread.join();
         }
-
         while (!logQueue.empty()) {
             logFile << logQueue.front() << std::endl;
             logQueue.pop();
