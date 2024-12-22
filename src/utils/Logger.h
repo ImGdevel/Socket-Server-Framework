@@ -191,6 +191,38 @@ public:
         logMessage(ERROR, message);
     }
 
+    static bool configureLoggerParameters(int argc, char* argv[]) {
+        for (int i = 1; i < argc; ++i) {
+            string arg = argv[i];
+            if (arg == "--log-level" && i + 1 < argc) {
+                string level = argv[++i];
+                if (level == "DEBUG") setLogLevel(DEBUG);
+                else if (level == "INFO") setLogLevel(INFO);
+                else if (level == "WARNING") setLogLevel(WARNING);
+                else if (level == "ERROR") setLogLevel(ERROR);
+                else {
+                    error("Invalid log level: " + level);
+                    return false;
+                }
+            } 
+            else if (arg == "--log-path" && i + 1 < argc) {
+                setLogPath(argv[++i]);
+            }
+            else if (arg == "--log-file-level" && i + 1 < argc) {
+                string level = argv[++i];
+                if (level == "DEBUG") setFileLogLevel(DEBUG);
+                else if (level == "INFO") setFileLogLevel(INFO);
+                else if (level == "WARNING") setFileLogLevel(WARNING);
+                else if (level == "ERROR") setFileLogLevel(ERROR);
+                else {
+                    error("Invalid file log level: " + level);
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
     static void close() {
         running = false;
         logCondition.notify_all();
