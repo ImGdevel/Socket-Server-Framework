@@ -9,23 +9,23 @@ TEST_EXEC = build/test
 # 외부 라이브러리 설정
 EXTERNAL_DIR = external
 
-### google test
+### Google Test 설정
 GTEST_DIR = $(EXTERNAL_DIR)/googletest
 GTEST_LIB = $(GTEST_DIR)/build/lib/libgtest.a
 GTEST_INCLUDE = $(GTEST_DIR)/googletest/include
 
-### json
+### RapidJSON 설정
 RAPIDJSON_DIR = $(EXTERNAL_DIR)/rapidjson
 RAPIDJSON_INCLUDE = $(RAPIDJSON_DIR)/include
 
 # 소스 및 테스트 파일 경로
 SRC_DIR = src
 APP_DIR = $(SRC_DIR)/server
-UTILS_DIR = $(SRC_DIR)/utils
+UTILS_DIR = src/utils
 TEST_DIR = tests/unit
 
 # 인클루드 및 유틸리티 경로 설정
-INCLUDE_DIRS = $(UTILS_DIR) $(EXTERNAL_DIR) $(GTEST_INCLUDE) $(RAPIDJSON_INCLUDE)
+INCLUDE_DIRS = $(UTILS_DIR) $(GTEST_INCLUDE) $(RAPIDJSON_INCLUDE)
 
 # 소스 파일
 SRC = $(SRC_DIR)/main.cpp \
@@ -55,12 +55,29 @@ INCLUDES = $(addprefix -I, $(INCLUDE_DIRS))
 # 기본 타겟: 서버 빌드
 all: $(TARGET)
 
+# 외부 라이브러리 확인 및 다운로드
+$(GTEST_LIB):
+	@if [ ! -d "$(GTEST_DIR)" ]; then \
+		echo "Google Test not found. Downloading..."; \
+		git clone --depth=1 https://github.com/google/googletest.git $(GTEST_DIR); \
+		rm -rf $(GTEST_DIR)/.git; \
+		cmake -S $(GTEST_DIR) -B $(GTEST_DIR)/build; \
+		cmake --build $(GTEST_DIR)/build; \
+	fi
+
+$(RAPIDJSON_INCLUDE):
+	@if [ ! -d "$(RAPIDJSON_DIR)" ]; then \
+		echo "RapidJSON not found. Downloading..."; \
+		git clone --depth=1 https://github.com/Tencent/rapidjson.git $(RAPIDJSON_DIR); \
+		rm -rf $(RAPIDJSON_DIR)/.git; \
+	fi
+
 # 서버 빌드 규칙
-$(TARGET): $(OBJ)
+$(TARGET): $(OBJ) $(GTEST_LIB) $(RAPIDJSON_INCLUDE)
 	$(CXX) $(OBJ) -o $(TARGET)
 
 # 테스트 실행 파일 빌드
-$(TEST_EXEC): $(OBJ) $(TEST_OBJ) $(GTEST_LIB)
+$(TEST_EXEC): $(OBJ) $(TEST_OBJ) $(GTEST_LIB) $(RAPIDJSON_INCLUDE)
 	$(CXX) $(OBJ) $(TEST_OBJ) $(GTEST_LIB) -o $(TEST_EXEC) -pthread
 
 # 오브젝트 파일 생성 규칙
@@ -80,3 +97,8 @@ test: $(TEST_EXEC)
 clean:
 	rm -f $(TEST_EXEC)
 	rm -rf $(OBJ_DIR)
+	rm -rf $(GTEST_DIR)/build
+	rm -rf $(RAPIDJSON_DIR)
+
+# 다운로드 및 빌드 타겟
+download: $(GTEST_LIB) $(RAPIDJSON_INCLUDE)
