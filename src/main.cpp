@@ -32,6 +32,11 @@ int main(int argc, char* argv[]) {
             return EXIT_FAILURE;
         }
 
+        // 서버 파라미터 Logger 설정
+        if (!Logger::configureLoggerParameters(argc, argv)) {
+            return EXIT_FAILURE;
+        }
+
         // 서버 애플리케이션 실행
         Server& server = Server::getInstance(port, workerCount);
         server.run();
