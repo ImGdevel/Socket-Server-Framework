@@ -8,6 +8,11 @@
 #include <ctime>
 #include <mutex>
 #include <sys/stat.h>
+#include <thread>
+#include <queue>
+#include <condition_variable>
+#include <atomic>
+#include <iomanip>
 
 enum LogLevel { DEBUG, INFO, WARNING, ERROR };
 
@@ -19,36 +24,48 @@ private:
     inline static std::string logPath = "./log";
     inline static std::ofstream logFile;
     inline static std::mutex logMutex;
+    inline static std::queue<std::string> logQueue;
+    inline static std::condition_variable logCondition;
+    inline static std::atomic<bool> running{true};
+    inline static std::thread logThread;
+    inline static size_t maxLogFileSize = 10 * 1024 * 1024;
+    inline static int fileIndex = 1;
+    inline static size_t maxQueueSize = 1000;
 
-    // 로그 초기화 도우미 클래스
     class LoggerInitializer {
     public:
         LoggerInitializer() {
             Logger::initializeLogFile();
+            Logger::startLoggingThread();
         }
     };
 
-    // 정적 초기화 객체
     inline static LoggerInitializer initializer;
 
-    // 로그 파일 초기화
     static void initializeLogFile() {
         if (writeToFile) {
-            // 로그 디렉토리 생성
             struct stat info;
             if (stat(logPath.c_str(), &info) != 0) {
                 mkdir(logPath.c_str(), 0755);
             }
 
-            // 날짜 기반 파일 이름 생성
             time_t now = time(nullptr);
             struct tm localTime;
             localtime_r(&now, &localTime);
-            char fileName[15];
-            strftime(fileName, sizeof(fileName), "%Y-%m-%d.log", &localTime);
+            char dateStr[15];
+            strftime(dateStr, sizeof(dateStr), "%Y-%m-%d", &localTime);
+            std::string folderPath = logPath + "/" + dateStr;
 
-            // 파일 열기 (이어쓰기 모드)
-            std::string fullFilePath = logPath + "/" + fileName;
+            struct stat folderInfo;
+            if (stat(folderPath.c_str(), &folderInfo) != 0) {
+                mkdir(folderPath.c_str(), 0755);
+            }
+
+            std::ostringstream fileNameStream;
+            fileNameStream << folderPath << "/" << dateStr << "-" 
+                           << std::setw(6) << std::setfill('0') << fileIndex << ".log";
+
+            std::string fullFilePath = fileNameStream.str();
             logFile.open(fullFilePath, std::ios::app);
             if (!logFile.is_open()) {
                 std::cerr << "[ERROR] Failed to open log file: " << fullFilePath << std::endl;
@@ -68,6 +85,8 @@ private:
 
     static void logMessage(LogLevel level, const std::string& message) {
         static const char* levelStrings[] = { "DEBUG", "INFO", "WARNING", "ERROR" };
+        if (logLevel > level && fileLogLevel > level) return;
+
         std::string timeHeader = getCurrentTime();
         std::ostringstream logStream;
         logStream << timeHeader << " [" << levelStrings[level] << "] " << message;
@@ -82,9 +101,49 @@ private:
             }
 
             if (writeToFile && fileLogLevel <= level && logFile.is_open()) {
-                logFile << logStream.str() << std::endl;
-                logFile.flush();
+                if (logQueue.size() < maxQueueSize) {
+                    logQueue.push(logStream.str());
+                    logCondition.notify_one();
+                } else {
+                    std::cerr << "[WARNING] Log queue is full. Discarding log message: " << logStream.str() << std::endl;
+                }
             }
+        }
+    }
+
+    static void startLoggingThread() {
+        logThread = std::thread([](){
+            while (running) {
+                std::string logMessage;
+                {
+                    std::unique_lock<std::mutex> lock(logMutex);
+                    logCondition.wait(lock, [](){ return !logQueue.empty() || !running; });
+
+                    if (!logQueue.empty()) {
+                        logMessage = logQueue.front();
+                        logQueue.pop();
+                    }
+                }
+
+                if (!logMessage.empty() && writeToFile && logFile.is_open()) {
+                    logFile << logMessage << std::endl;
+                    logFile.flush();
+                    checkLogFileSize();
+                }
+            }
+
+            while (!logQueue.empty()) {
+                logFile << logQueue.front() << std::endl;
+                logQueue.pop();
+            }
+        });
+    }
+
+    static void checkLogFileSize() {
+        if (static_cast<size_t>(logFile.tellp()) > maxLogFileSize) {
+            logFile.close();
+            ++fileIndex;
+            initializeLogFile();
         }
     }
 
@@ -112,6 +171,10 @@ public:
         }
     }
 
+    static void setMaxLogFileSize(size_t size) {
+        maxLogFileSize = size;
+    }
+
     static void debug(const std::string& message) {
         logMessage(DEBUG, message);
     }
@@ -128,7 +191,48 @@ public:
         logMessage(ERROR, message);
     }
 
+    static bool configureLoggerParameters(int argc, char* argv[]) {
+        for (int i = 1; i < argc; ++i) {
+            std::string arg = argv[i];
+            if (arg == "--log-level" && i + 1 < argc) {
+                std::string level = argv[++i];
+                if (level == "DEBUG") setLogLevel(DEBUG);
+                else if (level == "INFO") setLogLevel(INFO);
+                else if (level == "WARNING") setLogLevel(WARNING);
+                else if (level == "ERROR") setLogLevel(ERROR);
+                else {
+                    error("Invalid log level: " + level);
+                    return false;
+                }
+            } 
+            else if (arg == "--log-path" && i + 1 < argc) {
+                setLogPath(argv[++i]);
+            }
+            else if (arg == "--log-file-level" && i + 1 < argc) {
+                std::string level = argv[++i];
+                if (level == "DEBUG") setFileLogLevel(DEBUG);
+                else if (level == "INFO") setFileLogLevel(INFO);
+                else if (level == "WARNING") setFileLogLevel(WARNING);
+                else if (level == "ERROR") setFileLogLevel(ERROR);
+                else {
+                    error("Invalid file log level: " + level);
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
     static void close() {
+        running = false;
+        logCondition.notify_all();
+        if (logThread.joinable()) {
+            logThread.join();
+        }
+        while (!logQueue.empty()) {
+            logFile << logQueue.front() << std::endl;
+            logQueue.pop();
+        }
         if (logFile.is_open()) {
             logFile.close();
         }
