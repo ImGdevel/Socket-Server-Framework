@@ -30,6 +30,7 @@ private:
     inline static std::thread logThread;
     inline static size_t maxLogFileSize = 10 * 1024 * 1024;
     inline static int fileIndex = 1;
+    inline static size_t maxQueueSize = 1000;
 
     class LoggerInitializer {
     public:
@@ -48,7 +49,6 @@ private:
                 mkdir(logPath.c_str(), 0755);
             }
 
-            // 날짜 기반 폴더 생성
             time_t now = time(nullptr);
             struct tm localTime;
             localtime_r(&now, &localTime);
@@ -58,10 +58,9 @@ private:
 
             struct stat folderInfo;
             if (stat(folderPath.c_str(), &folderInfo) != 0) {
-                mkdir(folderPath.c_str(), 0755);  // 폴더가 없으면 생성
+                mkdir(folderPath.c_str(), 0755);
             }
 
-            // 로그 파일 이름 생성 (날짜 + 식별번호)
             std::ostringstream fileNameStream;
             fileNameStream << folderPath << "/" << dateStr << "-" 
                            << std::setw(6) << std::setfill('0') << fileIndex << ".log";
@@ -86,6 +85,8 @@ private:
 
     static void logMessage(LogLevel level, const std::string& message) {
         static const char* levelStrings[] = { "DEBUG", "INFO", "WARNING", "ERROR" };
+        if (logLevel > level && fileLogLevel > level) return;
+
         std::string timeHeader = getCurrentTime();
         std::ostringstream logStream;
         logStream << timeHeader << " [" << levelStrings[level] << "] " << message;
@@ -100,8 +101,12 @@ private:
             }
 
             if (writeToFile && fileLogLevel <= level && logFile.is_open()) {
-                logQueue.push(logStream.str());
-                logCondition.notify_one();
+                if (logQueue.size() < maxQueueSize) {
+                    logQueue.push(logStream.str());
+                    logCondition.notify_one();
+                } else {
+                    std::cerr << "[WARNING] Log queue is full. Discarding log message: " << logStream.str() << std::endl;
+                }
             }
         }
     }
@@ -125,6 +130,11 @@ private:
                     logFile.flush();
                     checkLogFileSize();
                 }
+            }
+
+            while (!logQueue.empty()) {
+                logFile << logQueue.front() << std::endl;
+                logQueue.pop();
             }
         });
     }
@@ -186,6 +196,11 @@ public:
         logCondition.notify_all();
         if (logThread.joinable()) {
             logThread.join();
+        }
+
+        while (!logQueue.empty()) {
+            logFile << logQueue.front() << std::endl;
+            logQueue.pop();
         }
         if (logFile.is_open()) {
             logFile.close();
