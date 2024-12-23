@@ -49,29 +49,11 @@ OBJ_DIR = build/obj
 OBJ = $(SRC:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
 TEST_OBJ = $(TEST_SRC:$(TEST_DIR)/%.cpp=$(OBJ_DIR)/%.o)
 
-# 인클루드 경로 설정 (동적으로 추가)
+# 인클루드 경로 설정
 INCLUDES = $(addprefix -I, $(INCLUDE_DIRS))
 
-# 기본 타겟: 서버 빌드 (check-dependencies를 포함)
-all: check-dependencies $(TARGET)
-
-# Protobuf 설치 확인
-check-protobuf:
-	@if ! command -v protoc &> /dev/null; then \
-		echo "Protobuf compiler not found. Installing..."; \
-		sudo apt-get update && sudo apt-get install -y protobuf-compiler libprotobuf-dev; \
-	else \
-		echo "Protobuf compiler found."; \
-	fi
-
-# libxml2 설치 확인
-check-libxml2:
-	@if ! ldconfig -p | grep libxml2 &> /dev/null; then \
-		echo "libxml2 not found. Installing..."; \
-		sudo apt-get update && sudo apt-get install -y libxml2 libxml2-dev; \
-	else \
-		echo "libxml2 library found."; \
-	fi
+# 외부 라이브러리 확인 및 다운로드
+check-dependencies: $(PROTOBUF_INCLUDE) $(LIBXML2_INCLUDE) $(GTEST_LIB) $(RAPIDJSON_INCLUDE)
 
 # Google Test 설치 확인 및 빌드
 $(GTEST_LIB):
@@ -82,6 +64,20 @@ $(GTEST_LIB):
 		cd $(GTEST_DIR) && cmake . && make; \
 	fi
 
+# Protobuf 설치 확인
+$(PROTOBUF_INCLUDE):
+	@if ! command -v protoc > /dev/null || [ ! -f /usr/lib/x86_64-linux-gnu/libprotobuf.so ]; then \
+		echo "Protobuf compiler or library not found. Installing..."; \
+		sudo apt-get update && sudo apt-get install -y protobuf-compiler libprotobuf-dev; \
+	fi
+
+# libxml2 설치 확인
+$(LIBXML2_INCLUDE):
+	@if ! ldconfig -p | grep -q "libxml2.so"; then \
+		echo "libxml2 not found. Installing..."; \
+		sudo apt-get update && sudo apt-get install -y libxml2 libxml2-dev; \
+	fi
+
 # RapidJSON 설치 확인
 $(RAPIDJSON_INCLUDE):
 	@if [ ! -d "$(RAPIDJSON_DIR)" ]; then \
@@ -89,9 +85,6 @@ $(RAPIDJSON_INCLUDE):
 		git clone --depth=1 https://github.com/Tencent/rapidjson.git $(RAPIDJSON_DIR); \
 		rm -rf $(RAPIDJSON_DIR)/.git; \
 	fi
-
-# 외부 라이브러리 확인 및 다운로드
-check-dependencies: check-protobuf check-libxml2 $(GTEST_LIB) $(RAPIDJSON_INCLUDE)
 
 # 서버 빌드 규칙
 $(TARGET): $(OBJ)
@@ -110,11 +103,15 @@ $(OBJ_DIR)/%.o: $(TEST_DIR)/%.cpp
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
 
+
+# 기본 타겟 : 서버 빌드
+all: $(TARGET) check-dependencies
+
 # 테스트 실행
 test: $(TEST_EXEC)
 	./$(TEST_EXEC)
 
-# clean 규칙
+# 청소 규칙
 clean:
 	rm -f $(TEST_EXEC)
 	rm -rf $(OBJ_DIR)
