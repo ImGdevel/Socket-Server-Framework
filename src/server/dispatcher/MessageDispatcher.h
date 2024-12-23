@@ -1,9 +1,9 @@
 #ifndef MESSAGEDISPATCHER_H
 #define MESSAGEDISPATCHER_H
 
-#include "HandlerTypes.h"
 #include <unordered_map>
 #include <utility>
+#include "../handler/HandlerTypes.h"
 
 class MessageDispatcher {
 public:
