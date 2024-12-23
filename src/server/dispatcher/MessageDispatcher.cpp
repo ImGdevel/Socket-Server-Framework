@@ -1,6 +1,5 @@
 #include "MessageDispatcher.h"
 #include "Logger.h"
-#include <iostream>
 
 using namespace std;
 
