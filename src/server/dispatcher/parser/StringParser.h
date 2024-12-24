@@ -1,14 +1,7 @@
-#ifndef IPARASER_H
-#define IPARASER_H
+#ifndef STRINGPRASER_H
+#define STRINGPRASER_H
 
-#include <string>
-#include <utility>
-
-class IParser {
-public:
-    virtual ~IParser() = default;
-    virtual std::pair<std::string, std::string> parse(const std::string& message) const = 0;
-};
+#include "IParser.h"
 
 class StringParser : public IParser {
 public:
@@ -22,5 +15,6 @@ public:
         return {type, content};
     }
 };
+
 
 #endif
