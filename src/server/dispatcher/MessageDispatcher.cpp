@@ -3,12 +3,15 @@
 
 using namespace std;
 
+MessageDispatcher::MessageDispatcher(unique_ptr<IParser> parser) : parser(move(parser)) {
+}
+
 void MessageDispatcher::registerHandler(const string& type, HandlerFunc handler) {
     handlers[type] = handler;
 }
 
 void MessageDispatcher::handleEvent(const std::shared_ptr<ClientSession>& session, const string& message) {
-    auto [type, content] = extractMessageTypeAndContent(message);
+    auto [type, content] = parser->parse(message);
 
     if (type.empty()) {
         Logger::error("Invalid message format: " + message);
