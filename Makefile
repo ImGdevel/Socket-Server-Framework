@@ -18,6 +18,10 @@ GTEST_INCLUDE = $(GTEST_DIR)/googletest/include
 RAPIDJSON_DIR = $(EXTERNAL_DIR)/rapidjson
 RAPIDJSON_INCLUDE = $(RAPIDJSON_DIR)/include
 
+# nlohmann/json 설정
+NLOHMANN_JSON_DIR = $(EXTERNAL_DIR)/nlohmann_json
+NLOHMANN_JSON_INCLUDE = $(NLOHMANN_JSON_DIR)/include
+
 # 소스 및 테스트 파일 경로
 SRC_DIR = src
 APP_DIR = $(SRC_DIR)/server
@@ -25,7 +29,7 @@ UTILS_DIR = src/utils
 TEST_DIR = tests/unit
 
 # 인클루드 및 유틸리티 경로 설정
-INCLUDE_DIRS = $(UTILS_DIR) $(GTEST_INCLUDE) $(RAPIDJSON_INCLUDE)
+INCLUDE_DIRS = $(UTILS_DIR) $(GTEST_INCLUDE) $(RAPIDJSON_INCLUDE) $(NLOHMANN_JSON_INCLUDE)
 
 # 소스 파일
 SRC = $(SRC_DIR)/main.cpp \
@@ -53,7 +57,7 @@ TEST_OBJ = $(TEST_SRC:$(TEST_DIR)/%.cpp=$(OBJ_DIR)/%.o)
 INCLUDES = $(addprefix -I, $(INCLUDE_DIRS))
 
 # 외부 라이브러리 확인 및 다운로드
-check-dependencies: $(PROTOBUF_INCLUDE) $(LIBXML2_INCLUDE) $(GTEST_LIB) $(RAPIDJSON_INCLUDE)
+check-dependencies: $(PROTOBUF_INCLUDE) $(LIBXML2_INCLUDE) $(GTEST_LIB) $(RAPIDJSON_INCLUDE) $(NLOHMANN_JSON_INCLUDE)
 
 # Google Test 설치 확인 및 빌드
 $(GTEST_LIB):
@@ -84,6 +88,14 @@ $(RAPIDJSON_INCLUDE):
 		echo "RapidJSON not found. Downloading..."; \
 		git clone --depth=1 https://github.com/Tencent/rapidjson.git $(RAPIDJSON_DIR); \
 		rm -rf $(RAPIDJSON_DIR)/.git; \
+	fi
+
+# nlohmann/json 설치 확인
+$(NLOHMANN_JSON_INCLUDE):
+	@if [ ! -d "$(NLOHMANN_JSON_DIR)" ]; then \
+		echo "nlohmann/json not found. Downloading..."; \
+		git clone --depth=1 https://github.com/nlohmann/json.git $(NLOHMANN_JSON_DIR); \
+		rm -rf $(NLOHMANN_JSON_DIR)/.git; \
 	fi
 
 # 서버 빌드 규칙
@@ -125,4 +137,4 @@ clean-all:
 	rm -rf $(EXTERNAL_DIR)
 
 # 다운로드 및 빌드 타겟
-download: $(GTEST_LIB) $(RAPIDJSON_INCLUDE)
+download: $(GTEST_LIB) $(RAPIDJSON_INCLUDE) $(NLOHMANN_JSON_INCLUDE)
