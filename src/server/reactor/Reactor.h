@@ -13,7 +13,7 @@ class MessageDispatcher;
 
 class Reactor {
 public:
-    explicit Reactor(int port, ThreadPool& threadPool, MessageDispatcher messageDispatcher); 
+    explicit Reactor(int port, ThreadPool& threadPool, MessageDispatcher& messageDispatcher); 
     ~Reactor();
 
     void start();
@@ -41,7 +41,7 @@ private:
 
     std::unordered_map<int, std::shared_ptr<ClientSession>> clientSessions;
     ThreadPool& threadPool;
-    MessageDispatcher messageDispatcher;
+    MessageDispatcher& messageDispatcher;
 };
 
 #endif
