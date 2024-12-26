@@ -1,0 +1,300 @@
+#include <iostream>
+#include <cstring>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+#include <cstdlib>
+#include <ctime>
+#include <thread>
+#include <vector>
+#include <unordered_map>
+#include <functional>
+#include <fstream>
+#include <iomanip>
+#include <sstream>
+#include <sys/epoll.h>
+#include <rapidjson/document.h>
+#include <rapidjson/writer.h>
+#include <rapidjson/stringbuffer.h>
+
+#define SERVER_PORT 8080
+#define SERVER_IP "127.0.0.1"
+#define BUFFER_SIZE 1024
+#define NUM_CLIENTS 500
+#define MAX_EVENTS 10
+
+using namespace std;
+using namespace rapidjson;
+
+void logError(const string& logMessage) {
+    time_t now = time(nullptr);
+    tm* localTime = localtime(&now);
+
+    stringstream fileNameStream;
+    fileNameStream << put_time(localTime, "%Y-%m-%d") << ".log";
+    string fileName = fileNameStream.str();
+
+    ofstream logFile(fileName, ios::app);
+    if (logFile.is_open()) {
+        logFile << put_time(localTime, "%H:%M:%S") << " " << logMessage << endl;
+        logFile.close();
+    }
+}
+
+void handleError(const string& errorMessage, int socket) {
+    stringstream logStream;
+    logStream << "Socket " << socket << " Error: " << errorMessage;
+    logError(logStream.str());
+    cerr << logStream.str() << endl;
+}
+
+ssize_t sendAll(int socket, const char* buffer, size_t length) {
+    size_t totalSent = 0;
+    while (totalSent < length) {
+        ssize_t sent = send(socket, buffer + totalSent, length - totalSent, 0);
+        if (sent <= 0) {
+            return sent;
+        }
+        totalSent += sent;
+    }
+    return totalSent;
+}
+
+ssize_t recvAll(int socket, char* buffer, size_t length) {
+    size_t totalReceived = 0;
+    while (totalReceived < length) {
+        ssize_t received = recv(socket, buffer + totalReceived, length - totalReceived, 0);
+        if (received <= 0) {
+            return received;
+        }
+        totalReceived += received;
+    }
+    return totalReceived;
+}
+
+bool sendMessage(int socket, const string& type, const string& content) {
+    try {
+        // JSON 메시지 생성
+        StringBuffer buffer;
+        Writer<StringBuffer> writer(buffer);
+        writer.StartObject();
+        writer.Key("type");
+        writer.String(type.c_str());
+        writer.Key("content");
+        writer.StartObject();
+        writer.Key("message");
+        writer.String(content.c_str());
+        writer.EndObject();
+        writer.EndObject();
+
+        string jsonMessage = buffer.GetString();
+
+        uint32_t messageLength = htonl(jsonMessage.size());
+        char bufferToSend[BUFFER_SIZE] = {0};
+        memcpy(bufferToSend, &messageLength, sizeof(messageLength));
+        memcpy(bufferToSend + sizeof(messageLength), jsonMessage.c_str(), jsonMessage.size());
+
+        if (sendAll(socket, bufferToSend, sizeof(messageLength) + jsonMessage.size()) < 0) {
+            throw runtime_error("Failed to send message");
+        }
+        return true;
+    } catch (const exception& e) {
+        handleError(e.what(), socket);
+        return false;
+    }
+}
+
+string receiveMessage(int socket) {
+    try {
+        uint32_t receivedMessageLength = 0;
+        if (recvAll(socket, (char*)&receivedMessageLength, sizeof(receivedMessageLength)) <= 0) {
+            throw runtime_error("Failed to receive message length");
+        }
+        receivedMessageLength = ntohl(receivedMessageLength);
+
+        if (receivedMessageLength > BUFFER_SIZE - 1) {
+            throw runtime_error("Received message is too large");
+        }
+
+        char response[BUFFER_SIZE] = {0};
+        if (recvAll(socket, response, receivedMessageLength) <= 0) {
+            throw runtime_error("Failed to receive message");
+        }
+
+        // JSON 메시지 파싱
+        Document document;
+        document.Parse(response, receivedMessageLength);
+        if (!document.IsObject()) {
+            throw runtime_error("Invalid JSON format");
+        }
+
+        string type = document["type"].GetString();
+        string content = document["content"]["message"].GetString();
+
+        cout << "Received JSON Message - Type: " << type << ", Content: " << content << endl;
+
+        return type + ":" + content;
+    } catch (const exception& e) {
+        handleError(e.what(), socket);
+        return "";
+    }
+}
+
+pair<string, string> parseMessage(const string& message) {
+    size_t delimiterPos = message.find(":");
+    if (delimiterPos == string::npos) {
+        return {"", ""};
+    }
+    string type = message.substr(0, delimiterPos);
+    string content = message.substr(delimiterPos + 1);
+    return {type, content};
+}
+
+using REQHandler = function<void(int)>;
+
+void handleEcho(int socket) {
+    sendMessage(socket, "ECHO", "Echo response");
+}
+
+void handleChat(int socket) {
+    sendMessage(socket, "CHAT", "Chat response");
+}
+
+void handleLogin(int socket) {
+    sendMessage(socket, "LOGIN", "Login response");
+}
+
+void handleTask(int socket) {
+    sendMessage(socket, "TASK", "Task response");
+}
+
+void handleDelay(int socket) {
+    sendMessage(socket, "DELAY", "Delay response");
+    sleep(2);
+}
+
+using REPHandler = function<void(const string&)>;
+
+unordered_map<string, REPHandler> eventHandlers;
+
+void handleMessage(const string& message) {
+    cout << "MSG Event: " << message << "\n";
+}
+
+void handleRooms(const string& message) {
+    cout << "ROOMS Event: " << message << "\n";
+}
+
+void registerEventHandlers() {
+    eventHandlers["MSG"] = handleMessage;
+    eventHandlers["ROOMS"] = handleRooms;
+}
+
+void receiveLoop(int epollFd, unordered_map<int, string>& sockets) {
+    registerEventHandlers();
+
+    epoll_event events[MAX_EVENTS];
+    while (true) {
+        int numEvents = epoll_wait(epollFd, events, MAX_EVENTS, -1);
+        for (int i = 0; i < numEvents; ++i) {
+            int clientSocket = events[i].data.fd;
+            string message = receiveMessage(clientSocket);
+            if (!message.empty()) {
+                cout << "Received from socket " << clientSocket << ": " << message << endl;
+                auto [type, content] = parseMessage(message);
+
+                if (eventHandlers.find(type) != eventHandlers.end()) {
+                    eventHandlers[type](content);
+                } else {
+                    cerr << "Unknown event type: " << type << endl;
+                }
+            } else {
+                close(clientSocket);
+                sockets.erase(clientSocket);
+            }
+        }
+    }
+}
+
+void sendLoop(int socket) {
+    static vector<void(*)(int)> handlers = {handleEcho, handleChat, handleLogin, handleTask, handleDelay};
+
+    srand(static_cast<unsigned>(time(nullptr)));
+
+    while (true) {
+        int randomIndex = rand() % handlers.size();
+        handlers[randomIndex](socket);
+
+        int delay = rand() % 1001;
+        this_thread::sleep_for(chrono::milliseconds(delay));
+    }
+}
+
+void runClient(int clientId) {
+    srand(time(nullptr) + clientId);
+
+    int clientSocket = socket(AF_INET, SOCK_STREAM, 0);
+    if (clientSocket < 0) {
+        handleError("Socket creation failed", clientSocket);
+        return;
+    }
+
+    sockaddr_in serverAddr{};
+    serverAddr.sin_family = AF_INET;
+    serverAddr.sin_port = htons(SERVER_PORT);
+    if (inet_pton(AF_INET, SERVER_IP, &serverAddr.sin_addr) <= 0) {
+        handleError("Invalid address or address not supported", clientSocket);
+        close(clientSocket);
+        return;
+    }
+
+    if (connect(clientSocket, (struct sockaddr*)&serverAddr, sizeof(serverAddr)) < 0) {
+        handleError("Connection to server failed", clientSocket);
+        close(clientSocket);
+        return;
+    }
+    cout << "Client " << clientId << " connected to server." << endl;
+
+    int epollFd = epoll_create1(0);
+    if (epollFd < 0) {
+        handleError("Failed to create epoll instance", clientSocket);
+        close(clientSocket);
+        return;
+    }
+
+    epoll_event event{};
+    event.events = EPOLLIN;
+    event.data.fd = clientSocket;
+    if (epoll_ctl(epollFd, EPOLL_CTL_ADD, clientSocket, &event) < 0) {
+        handleError("Failed to add socket to epoll", clientSocket);
+        close(clientSocket);
+        close(epollFd);
+        return;
+    }
+
+    unordered_map<int, string> sockets;
+    sockets[clientSocket] = "";
+
+    thread receiveThread(receiveLoop, epollFd, ref(sockets));
+    thread sendThread(sendLoop, clientSocket);
+
+    receiveThread.join();
+    sendThread.join();
+
+    close(clientSocket);
+}
+
+int main() {
+    vector<thread> clientThreads;
+    registerEventHandlers();
+
+    for (int i = 0; i < NUM_CLIENTS; ++i) {
+        clientThreads.emplace_back(runClient, i + 1);
+    }
+
+    for (auto& t : clientThreads) {
+        t.join();
+    }
+
+    return 0;
+}
