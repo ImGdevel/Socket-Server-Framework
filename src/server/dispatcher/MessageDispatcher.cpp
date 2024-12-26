@@ -22,7 +22,7 @@ void MessageDispatcher::handleEvent(const shared_ptr<ClientSession>& session, co
 
     auto it = handlers.find(type);
     if (it != handlers.end()) {
-        it->second(session, parsedMessage); // Pass serialized content to the handler
+        it->second(session, parsedMessage);
     } else {
         Logger::error("No handler found for type: " + type);
     }
