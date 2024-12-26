@@ -1,21 +1,23 @@
-#ifndef PROTOBUFPARASER_H
-#define PROTOBUFPARASER_H
+#ifndef PROTOBUFPARSER_H
+#define PROTOBUFPARSER_H
 
 #include "IParser.h"
 #include <google/protobuf/message.h>
+#include "ProtobufMessage.h"
 
 template <typename T>
 class ProtobufParser : public IParser {
 public:
-    std::pair<std::string, std::string> parse(const std::string& message) const override {
+    std::unique_ptr<IMessage> parse(const std::string& message) const override {
         T protoMessage;
         if (!protoMessage.ParseFromString(message)) {
-            return {"", ""};
+            return nullptr;
         }
 
         std::string type = protoMessage.type();
         std::string content = protoMessage.content();
-        return {type, content};
+
+        return std::make_unique<ProtobufMessage>(type, content);
     }
 };
 

@@ -9,6 +9,6 @@
 
 using MessagePtr = std::unique_ptr<IMessage>;
 
-using HandlerFunc = std::function<void(const std::shared_ptr<ClientSession>&, const std::unique_ptr<IMessage>&)>;
+using HandlerFunc = std::function<void(const std::shared_ptr<ClientSession>&, const MessagePtr&)>;
 
 #endif

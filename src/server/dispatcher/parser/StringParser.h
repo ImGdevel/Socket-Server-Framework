@@ -1,20 +1,22 @@
-#ifndef STRINGPRASER_H
-#define STRINGPRASER_H
+#ifndef STRINGPARSER_H
+#define STRINGPARSER_H
 
 #include "IParser.h"
+#include "StringMessage.h"
 
 class StringParser : public IParser {
 public:
-    std::pair<std::string, std::string> parse(const std::string& message) const override {
+    std::unique_ptr<IMessage> parse(const std::string& message) const override {
         auto delimiterPos = message.find(":");
         if (delimiterPos == std::string::npos) {
-            return {"", ""};
+            return nullptr;
         }
+
         std::string type = message.substr(0, delimiterPos);
         std::string content = message.substr(delimiterPos + 1);
-        return {type, content};
+
+        return std::make_unique<StringMessage>(type, content);
     }
 };
-
 
 #endif

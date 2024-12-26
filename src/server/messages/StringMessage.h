@@ -1,15 +1,15 @@
-#ifndef PROTOBUFMESSAGE_H
-#define PROTOBUFMESSAGE_H
+#ifndef STRINGMESSAGE_H
+#define STRINGMESSAGE_H
 
 #include "IMessage.h"
 
-class ProtobufMessage : public IMessage {
+class StringMessage : public IMessage {
 private:
     std::string type;
     std::string content;
 
 public:
-    ProtobufMessage(const std::string& type, const std::string& content)
+    StringMessage(const std::string& type, const std::string& content)
         : type(type), content(content) {}
 
     std::string getType() const override {
