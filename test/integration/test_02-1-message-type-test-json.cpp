@@ -74,7 +74,6 @@ ssize_t recvAll(int socket, char* buffer, size_t length) {
 
 bool sendMessage(int socket, const string& type, const string& content) {
     try {
-        // JSON 메시지 생성
         StringBuffer buffer;
         Writer<StringBuffer> writer(buffer);
         writer.StartObject();
@@ -121,7 +120,6 @@ string receiveMessage(int socket) {
             throw runtime_error("Failed to receive message");
         }
 
-        // JSON 메시지 파싱
         Document document;
         document.Parse(response, receivedMessageLength);
         if (!document.IsObject()) {

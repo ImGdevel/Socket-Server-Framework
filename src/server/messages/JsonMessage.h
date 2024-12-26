@@ -3,9 +3,11 @@
 
 #include "IMessage.h"
 #include "rapidjson/document.h"
-#include "rapidjson/rapidjson.h"
 #include "rapidjson/writer.h"
-#include "rapidjson/stringbuffer.h" 
+#include "rapidjson/stringbuffer.h"
+#include <nlohmann/json.hpp>
+
+using json = nlohmann::json;
 
 class JsonMessage : public IMessage {
 private:
@@ -23,10 +25,36 @@ public:
     }
 
     std::string serialize() const override {
-        rapidjson::StringBuffer buffer; 
+        rapidjson::StringBuffer buffer;
         rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
         content.Accept(writer);
         return buffer.GetString();
+    }
+
+    const rapidjson::Document& getContent() const {
+        return content;
+    }
+};
+
+class JsonMessageNlohmann : public IMessage {
+private:
+    std::string type;
+    json content;
+
+public:
+    JsonMessageNlohmann(const std::string& type, const json& content)
+        : type(type), content(content) {}
+
+    std::string getType() const override {
+        return type;
+    }
+
+    std::string serialize() const override {
+        return content.dump();
+    }
+
+    const json& getContent() const {
+        return content;
     }
 };
 
