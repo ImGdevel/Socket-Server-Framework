@@ -42,6 +42,7 @@ SRC = $(SRC_DIR)/main.cpp \
       $(APP_DIR)/dispatcher/MessageDispatcher.cpp \
       $(APP_DIR)/dispatcher/HandlerConfigurator.cpp \
       $(APP_DIR)/handler/TestEventHandler.cpp \
+	  $(APP_DIR)/handler/TestJSONEventHandler.cpp \
       $(APP_DIR)/chat/ChatRoom.cpp \
       $(APP_DIR)/chat/ChatRoomManager.cpp
 
