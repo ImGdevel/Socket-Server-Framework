@@ -7,15 +7,35 @@
 #include "rapidjson/stringbuffer.h"
 #include <nlohmann/json.hpp>
 
-using json = nlohmann::json;
+class JSONMessage : public IMessage {
+private:
+    std::string type;
+    nlohmann::json content;
 
-class JsonMessage : public IMessage {
+public:
+    JSONMessage(const std::string& type, const nlohmann::json& content)
+        : type(type), content(content) {}
+
+    std::string getType() const override {
+        return type;
+    }
+
+    std::string serialize() const override {
+        return content.dump();
+    }
+
+    const nlohmann::json& getContent() const {
+        return content;
+    }
+};
+
+class JSONMessageRapid : public IMessage {
 private:
     std::string type;
     rapidjson::Document content;
 
 public:
-    JsonMessage(const std::string& type, const rapidjson::Document& content)
+    JSONMessageRapid(const std::string& type, const rapidjson::Document& content)
         : type(type) {
         this->content.CopyFrom(content, this->content.GetAllocator());
     }
@@ -32,28 +52,6 @@ public:
     }
 
     const rapidjson::Document& getContent() const {
-        return content;
-    }
-};
-
-class JsonMessageNlohmann : public IMessage {
-private:
-    std::string type;
-    json content;
-
-public:
-    JsonMessageNlohmann(const std::string& type, const json& content)
-        : type(type), content(content) {}
-
-    std::string getType() const override {
-        return type;
-    }
-
-    std::string serialize() const override {
-        return content.dump();
-    }
-
-    const json& getContent() const {
         return content;
     }
 };
