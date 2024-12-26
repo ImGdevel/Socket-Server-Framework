@@ -1,13 +1,14 @@
-#ifndef IPARASER_H
-#define IPARASER_H
+#ifndef IPARSER_H
+#define IPARSER_H
 
 #include <string>
-#include <utility>
+#include <memory>
+#include "IMessage.h"
 
 class IParser {
 public:
     virtual ~IParser() = default;
-    virtual std::pair<std::string, std::string> parse(const std::string& message) const = 0;
+    virtual std::unique_ptr<IMessage> parse(const std::string& message) const = 0;
 };
 
 #endif
