@@ -27,9 +27,10 @@ SRC_DIR = src
 APP_DIR = $(SRC_DIR)/server
 UTILS_DIR = src/utils
 TEST_DIR = tests/unit
+Message_DIR = src/server/messages
 
 # 인클루드 및 유틸리티 경로 설정
-INCLUDE_DIRS = $(UTILS_DIR) $(GTEST_INCLUDE) $(RAPIDJSON_INCLUDE) $(NLOHMANN_JSON_INCLUDE)
+INCLUDE_DIRS = $(UTILS_DIR) $(GTEST_INCLUDE) $(RAPIDJSON_INCLUDE) $(Message_DIR)
 
 # 소스 파일
 SRC = $(SRC_DIR)/main.cpp \
@@ -53,11 +54,37 @@ OBJ_DIR = build/obj
 OBJ = $(SRC:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
 TEST_OBJ = $(TEST_SRC:$(TEST_DIR)/%.cpp=$(OBJ_DIR)/%.o)
 
-# 인클루드 경로 설정
+# 인클루드 경로
 INCLUDES = $(addprefix -I, $(INCLUDE_DIRS))
+
+# 기본 타겟: 서버 빌드 
+all: check-dependencies $(TARGET)
 
 # 외부 라이브러리 확인 및 다운로드
 check-dependencies: $(PROTOBUF_INCLUDE) $(LIBXML2_INCLUDE) $(GTEST_LIB) $(RAPIDJSON_INCLUDE) $(NLOHMANN_JSON_INCLUDE)
+
+# 테스트 실행
+test: $(TEST_EXEC)
+	./$(TEST_EXEC)
+
+# clean 규칙
+clean:
+	rm -f $(TEST_EXEC)
+	rm -rf $(OBJ_DIR)
+
+clean-external:
+	rm -rf $(EXTERNAL_DIR)
+
+clean-all:
+	rm -f $(TEST_EXEC)
+	rm -rf $(OBJ_DIR)
+	rm -rf $(EXTERNAL_DIR)
+
+# 다운로드 및 빌드 타겟
+download: $(GTEST_LIB) $(RAPIDJSON_INCLUDE) $(NLOHMANN_JSON_INCLUDE)
+
+
+########## [ 빌드 규칙 ] #############
 
 # Google Test 설치 확인 및 빌드
 $(GTEST_LIB):
@@ -114,27 +141,3 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 $(OBJ_DIR)/%.o: $(TEST_DIR)/%.cpp
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
-
-
-# 기본 타겟 : 서버 빌드
-all: $(TARGET) check-dependencies
-
-# 테스트 실행
-test: $(TEST_EXEC)
-	./$(TEST_EXEC)
-
-# 청소 규칙
-clean:
-	rm -f $(TEST_EXEC)
-	rm -rf $(OBJ_DIR)
-
-clean-external:
-	rm -rf $(EXTERNAL_DIR)
-
-clean-all:
-	rm -f $(TEST_EXEC)
-	rm -rf $(OBJ_DIR)
-	rm -rf $(EXTERNAL_DIR)
-
-# 다운로드 및 빌드 타겟
-download: $(GTEST_LIB) $(RAPIDJSON_INCLUDE) $(NLOHMANN_JSON_INCLUDE)
