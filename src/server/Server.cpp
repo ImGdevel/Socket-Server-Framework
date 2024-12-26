@@ -3,8 +3,8 @@
 #include "dispatcher/HandlerConfigurator.h"
 #include "handler/TestEventHandler.h"
 #include "handler/TestJSONEventHandler.h"
-#include "dispatcher/parser/StringParser.h"
-#include "dispatcher/parser/JsonParser.h"
+#include "messages/parser/StringParser.h"
+#include "messages/parser/JsonParser.h"
 #include <memory>
 
 using namespace std;
