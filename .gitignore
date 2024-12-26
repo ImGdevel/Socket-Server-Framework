@@ -1,14 +1,17 @@
-# 컴파일러/IDE 파일
+# Compiler/IDE files
 .vscode
 
-# 빌드 파일
+# Build files
 /build/server
 
-# 목적 파일
+# Object files
 *.o
 /build/obj
 /build/obj/*
 
-# 로그 파일
+# Log files
 *.log
 */log
+
+# External libraries
+/external/*
