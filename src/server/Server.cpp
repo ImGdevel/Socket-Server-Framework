@@ -36,6 +36,7 @@ Server::~Server() {
     terminate();
 }
 
+
 void Server::run() {
     Logger::info("Server is starting on port " + to_string(port) + " with " + to_string(workerCount) + " workers.");
     reactor->start();
