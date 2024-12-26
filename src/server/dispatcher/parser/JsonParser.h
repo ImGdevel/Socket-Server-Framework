@@ -21,7 +21,7 @@ public:
                 std::string type = jsonObj.at("type").get<std::string>();
                 auto content = jsonObj.at("content");
 
-                return std::make_unique<JsonMessageNlohmann>(type, content);
+                return std::make_unique<JSONMessage>(type, content);
             }
         } catch (const std::exception& e) {
             
@@ -47,7 +47,7 @@ public:
             rapidjson::Document content;
             content.CopyFrom(document["content"], content.GetAllocator());
 
-            return std::make_unique<JsonMessage>(type, content);
+            return std::make_unique<JSONMessageRapid>(type, content);
         }
 
         return nullptr;

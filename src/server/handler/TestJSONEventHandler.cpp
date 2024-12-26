@@ -28,7 +28,7 @@ unordered_map<string, HandlerFunc> TestJSONEventHandler::createHandlers() const 
 
 void TestJSONEventHandler::onLogin(const shared_ptr<ClientSession>& session, const MessagePtr& message) const {
     if (session) {
-        auto jsonMessage = dynamic_cast<JsonMessage*>(message.get());
+        auto jsonMessage = dynamic_cast<JSONMessageRapid*>(message.get());
         if (jsonMessage) {
             string content = "Login response!";
             string jsonResponse = createJsonResponse("MSG", content);
@@ -42,7 +42,7 @@ void TestJSONEventHandler::onLogin(const shared_ptr<ClientSession>& session, con
 
 void TestJSONEventHandler::onChat(const shared_ptr<ClientSession>& session, const MessagePtr& message) const {
     if (session) {
-        auto jsonMessage = dynamic_cast<JsonMessage*>(message.get());
+        auto jsonMessage = dynamic_cast<JSONMessageRapid*>(message.get());
         if (jsonMessage) {
             string content = "Chat response!";
             string jsonResponse = createJsonResponse("MSG", content);
@@ -55,7 +55,7 @@ void TestJSONEventHandler::onChat(const shared_ptr<ClientSession>& session, cons
 
 void TestJSONEventHandler::onEcho(const shared_ptr<ClientSession>& session, const MessagePtr& message) const {
     if (session) {
-        auto jsonMessage = dynamic_cast<JsonMessage*>(message.get());
+        auto jsonMessage = dynamic_cast<JSONMessageRapid*>(message.get());
         if (jsonMessage) {
             string content = "Echo response!";
             string jsonResponse = createJsonResponse("MSG", content);
@@ -68,7 +68,7 @@ void TestJSONEventHandler::onEcho(const shared_ptr<ClientSession>& session, cons
 
 void TestJSONEventHandler::onDelay(const shared_ptr<ClientSession>& session, const MessagePtr& message) const {
     if (session) {
-        auto jsonMessage = dynamic_cast<JsonMessage*>(message.get());
+        auto jsonMessage = dynamic_cast<JSONMessageRapid*>(message.get());
         if (jsonMessage) {
             string content = "Delay response!";
             string jsonResponse = createJsonResponse("MSG", content);
@@ -81,7 +81,7 @@ void TestJSONEventHandler::onDelay(const shared_ptr<ClientSession>& session, con
 
 void TestJSONEventHandler::onTask(const shared_ptr<ClientSession>& session, const MessagePtr& message) const {
     if (session) {
-        auto jsonMessage = dynamic_cast<JsonMessage*>(message.get());
+        auto jsonMessage = dynamic_cast<JSONMessageRapid*>(message.get());
         if (jsonMessage) {
             string content = "Task response!";
             string jsonResponse = createJsonResponse("MSG", content);
