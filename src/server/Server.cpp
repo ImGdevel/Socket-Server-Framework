@@ -2,7 +2,9 @@
 #include "Logger.h"
 #include "dispatcher/HandlerConfigurator.h"
 #include "handler/TestEventHandler.h"
+#include "handler/TestJSONEventHandler.h"
 #include "dispatcher/parser/StringParser.h"
+#include "dispatcher/parser/JsonParser.h"
 #include <memory>
 
 using namespace std;
@@ -18,10 +20,10 @@ Server::Server(int port, int workerCount)
 }
 
 void Server::initialize() {
-    auto parser = make_unique<StringParser>();
+    auto parser = make_unique<JSONParserRapid>();
     messageDispatcher = std::make_unique<MessageDispatcher>(std::move(parser));
 
-    TestEventHandler handler;
+    TestJSONEventHandler handler;
     HandlerConfigurator::registerHandlers(*messageDispatcher, handler);
 
     threadPool = make_unique<ThreadPool>(workerCount);

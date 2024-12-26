@@ -151,23 +151,23 @@ pair<string, string> parseMessage(const string& message) {
 using REQHandler = function<void(int)>;
 
 void handleEcho(int socket) {
-    sendMessage(socket, "ECHO", "Echo response");
+    sendMessage(socket, "ECHO", "Echo request");
 }
 
 void handleChat(int socket) {
-    sendMessage(socket, "CHAT", "Chat response");
+    sendMessage(socket, "CHAT", "Chat request");
 }
 
 void handleLogin(int socket) {
-    sendMessage(socket, "LOGIN", "Login response");
+    sendMessage(socket, "LOGIN", "Login request");
 }
 
 void handleTask(int socket) {
-    sendMessage(socket, "TASK", "Task response");
+    sendMessage(socket, "TASK", "Task request");
 }
 
 void handleDelay(int socket) {
-    sendMessage(socket, "DELAY", "Delay response");
+    sendMessage(socket, "DELAY", "Delay request");
     sleep(2);
 }
 

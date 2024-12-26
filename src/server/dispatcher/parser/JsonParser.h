@@ -24,12 +24,13 @@ public:
                 return std::make_unique<JsonMessageNlohmann>(type, content);
             }
         } catch (const std::exception& e) {
-            // Log the error or handle it as needed
+            
         }
 
         return nullptr;
     }
 };
+
 
 class JSONParserRapid : public IParser {
 public:
