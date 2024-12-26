@@ -10,14 +10,14 @@ using namespace std;
 
 unordered_map<string, HandlerFunc> TestEventHandler::createHandlers() const {
     return {
-        {"LOGIN", [this](auto session, auto message) { this->onLogin(session, message); }},
-        {"ECHO", [this](auto session, auto message) { this->onEcho(session, message); }},
-        {"DELAY", [this](auto session, auto message) { this->onDelay(session, message); }},
-        {"JOIN", [this](auto session, auto message) { this->onJoinRoom(session, message); }},
-        {"CHAT", [this](auto session, auto message) { this->onRoomMessage(session, message); }},
-        {"ROOM_LIST", [this](auto session, auto message) { this->onListRooms(session, message); }},
-        {"ROOM_REMOVE", [this](auto session, auto message) { this->onRemoveRoom(session, message); }},
-        {"LEAVE", [this](auto session, auto message) { this->onLeaveRoom(session, message); }},
+        {"LOGIN", [this](const shared_ptr<ClientSession>& session, const MessagePtr& message) { this->onLogin(session, message); }},
+        {"ECHO", [this](const shared_ptr<ClientSession>& session, const MessagePtr& message) { this->onEcho(session, message); }},
+        {"DELAY", [this](const shared_ptr<ClientSession>& session, const MessagePtr& message) { this->onDelay(session, message); }},
+        {"JOIN", [this](const shared_ptr<ClientSession>& session, const MessagePtr& message) { this->onJoinRoom(session, message); }},
+        {"CHAT", [this](const shared_ptr<ClientSession>& session, const MessagePtr& message) { this->onRoomMessage(session, message); }},
+        {"ROOM_LIST", [this](const shared_ptr<ClientSession>& session, const MessagePtr& message) { this->onListRooms(session, message); }},
+        {"ROOM_REMOVE", [this](const shared_ptr<ClientSession>& session, const MessagePtr& message) { this->onRemoveRoom(session, message); }},
+        {"LEAVE", [this](const shared_ptr<ClientSession>& session, const MessagePtr& message) { this->onLeaveRoom(session, message); }},
     };
 }
 
