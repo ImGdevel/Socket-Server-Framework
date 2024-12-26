@@ -1,6 +1,7 @@
 #ifndef SERVER_H
 #define SERVER_H
 
+#include <memory>
 #include "reactor/Reactor.h"
 #include "threadpool/ThreadPool.h"
 
@@ -23,7 +24,7 @@ private:
 
     std::unique_ptr<Reactor> reactor; 
     std::unique_ptr<ThreadPool> threadPool;
-    MessageDispatcher messageDispatcher;
+    std::unique_ptr<MessageDispatcher> messageDispatcher;
 
     void initialize();
 };

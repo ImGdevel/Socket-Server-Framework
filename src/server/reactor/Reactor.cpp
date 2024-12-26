@@ -14,7 +14,7 @@
 
 using namespace std;
 
-Reactor::Reactor(int port, ThreadPool& threadPool, MessageDispatcher messageDispatcher)
+Reactor::Reactor(int port, ThreadPool& threadPool, MessageDispatcher& messageDispatcher)
         : port(port), serverSocket(-1), epollFd(-1), running(false), threadPool(threadPool), messageDispatcher(messageDispatcher) {
     setupServerSocket();
     setupIOMultiplexing();

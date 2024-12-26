@@ -10,61 +10,61 @@ using namespace std;
 
 unordered_map<string, HandlerFunc> TestEventHandler::createHandlers() const {
     return {
-        {"LOGIN", [this](auto session, auto message) { this->onLogin(session, message); }},
-        {"ECHO", [this](auto session, auto message) { this->onEcho(session, message); }},
-        {"DELAY", [this](auto session, auto message) { this->onDelay(session, message); }},
-        {"JOIN", [this](auto session, auto message) { this->onJoinRoom(session, message); }},
-        {"CHAT", [this](auto session, auto message) { this->onRoomMessage(session, message); }},
-        {"ROOM_LIST", [this](auto session, auto message) { this->onListRooms(session, message); }},
-        {"ROOM_REMOVE", [this](auto session, auto message) { this->onRemoveRoom(session, message); }},
-        {"LEAVE", [this](auto session, auto message) { this->onLeaveRoom(session, message); }},
+        {"LOGIN", [this](const shared_ptr<ClientSession>& session, const MessagePtr& message) { this->onLogin(session, message); }},
+        {"ECHO", [this](const shared_ptr<ClientSession>& session, const MessagePtr& message) { this->onEcho(session, message); }},
+        {"DELAY", [this](const shared_ptr<ClientSession>& session, const MessagePtr& message) { this->onDelay(session, message); }},
+        {"JOIN", [this](const shared_ptr<ClientSession>& session, const MessagePtr& message) { this->onJoinRoom(session, message); }},
+        {"CHAT", [this](const shared_ptr<ClientSession>& session, const MessagePtr& message) { this->onRoomMessage(session, message); }},
+        {"ROOM_LIST", [this](const shared_ptr<ClientSession>& session, const MessagePtr& message) { this->onListRooms(session, message); }},
+        {"ROOM_REMOVE", [this](const shared_ptr<ClientSession>& session, const MessagePtr& message) { this->onRemoveRoom(session, message); }},
+        {"LEAVE", [this](const shared_ptr<ClientSession>& session, const MessagePtr& message) { this->onLeaveRoom(session, message); }},
     };
 }
 
-void TestEventHandler::onLogin(const shared_ptr<ClientSession>& session, const string& message) const {
+void TestEventHandler::onLogin(const shared_ptr<ClientSession>& session, const MessagePtr& message) const {
     if (session) {
-        string echoMessage = "MSG: " + message;
+        string echoMessage = "MSG: " + message->serialize();
         Logger::info("send message : " + echoMessage);
         session->sendMessage(echoMessage);
     }
 }
 
-void TestEventHandler::onChat(const shared_ptr<ClientSession>& session, const string& message) const {
+void TestEventHandler::onChat(const shared_ptr<ClientSession>& session,  const MessagePtr& message) const {
     if (session) {
-        string echoMessage = "MSG: " + message;
+        string echoMessage = "MSG: " + message->serialize();
         Logger::info("send message : " + echoMessage);
         session->sendMessage(echoMessage);
     }
 }
 
-void TestEventHandler::onEcho(const shared_ptr<ClientSession>& session, const string& message) const {
+void TestEventHandler::onEcho(const shared_ptr<ClientSession>& session,  const MessagePtr& message) const {
     if (session) {
-        string echoMessage = "MSG: " + message;
+        string echoMessage = "MSG: " + message->serialize();
         Logger::info("send message : " + echoMessage);
         session->sendMessage(echoMessage);
     }
 }
 
-void TestEventHandler::onDelay(const shared_ptr<ClientSession>& session, const string& message) const {
+void TestEventHandler::onDelay(const shared_ptr<ClientSession>& session,  const MessagePtr& message) const {
     if (session) {
-        string echoMessage = "MSG: " + message;
+        string echoMessage = "MSG: " + message->serialize();
         Logger::info("send message : " + echoMessage);
         //this_thread::sleep_for(chrono::seconds(1));
         session->sendMessage(echoMessage);
     }
 }
 
-void TestEventHandler::onTask(const shared_ptr<ClientSession>& session, const string& message) const {
+void TestEventHandler::onTask(const shared_ptr<ClientSession>& session,  const MessagePtr& message) const {
     if (session) {
-        string echoMessage = "MSG: " + message;
+        string echoMessage = "MSG: " + message->serialize();
         Logger::info("send message : " + echoMessage);
         session->sendMessage(echoMessage);
     }
 }
 
-void TestEventHandler::onJoinRoom(const shared_ptr<ClientSession>& session, const string& message) const {
+void TestEventHandler::onJoinRoom(const shared_ptr<ClientSession>& session,  const MessagePtr& message) const {
     if (session) {
-        istringstream iss(message);
+        istringstream iss(message->serialize());
         string roomName;
         iss >> roomName;
 
@@ -76,7 +76,7 @@ void TestEventHandler::onJoinRoom(const shared_ptr<ClientSession>& session, cons
     }
 }
 
-void TestEventHandler::onRoomMessage(const shared_ptr<ClientSession>& session, const string& message) const {
+void TestEventHandler::onRoomMessage(const shared_ptr<ClientSession>& session,  const MessagePtr& message) const {
     if (session) {
         auto roomId = session->getCurrentRoom();
         if (roomId.empty()) {
@@ -86,14 +86,14 @@ void TestEventHandler::onRoomMessage(const shared_ptr<ClientSession>& session, c
 
         auto chatRoom = ChatRoomManager::getInstance().getRoom(roomId);
         if (chatRoom) {
-            chatRoom->broadcastMessage(message, session);
+            chatRoom->broadcastMessage(message->serialize(), session);
         } else {
             session->sendMessage("MSG: The chat room no longer exists.");
         }
     }
 }
 
-void TestEventHandler::onListRooms(const shared_ptr<ClientSession>& session, const string& message) const {
+void TestEventHandler::onListRooms(const shared_ptr<ClientSession>& session,  const MessagePtr& message) const {
     if (session) {
         auto roomIds = ChatRoomManager::getInstance().getRooms();
         string response = "ROOMS: ";
@@ -104,9 +104,9 @@ void TestEventHandler::onListRooms(const shared_ptr<ClientSession>& session, con
     }
 }
 
-void TestEventHandler::onCreateRoom(const shared_ptr<ClientSession>& session, const string& message) const {
+void TestEventHandler::onCreateRoom(const shared_ptr<ClientSession>& session,  const MessagePtr& message) const {
     if (session) {
-        istringstream iss(message);
+        istringstream iss(message->serialize());
         string roomName;
         iss >> roomName;
 
@@ -118,9 +118,9 @@ void TestEventHandler::onCreateRoom(const shared_ptr<ClientSession>& session, co
     }
 }
 
-void TestEventHandler::onRemoveRoom(const shared_ptr<ClientSession>& session, const string& message) const {
+void TestEventHandler::onRemoveRoom(const shared_ptr<ClientSession>& session,  const MessagePtr& message) const {
     if (session) {
-        istringstream iss(message);
+        istringstream iss(message->serialize());
         string roomId;
         iss >> roomId;
 
@@ -133,7 +133,7 @@ void TestEventHandler::onRemoveRoom(const shared_ptr<ClientSession>& session, co
 }
 
 
-void TestEventHandler::onLeaveRoom(const std::shared_ptr<ClientSession>& session, const string& message) const {
+void TestEventHandler::onLeaveRoom(const std::shared_ptr<ClientSession>& session,  const MessagePtr& message) const {
     if (session) {
         auto currentRoomId = session->getCurrentRoom();
         if (currentRoomId.empty()) {
