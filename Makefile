@@ -1,11 +1,3 @@
-# 컴파일러 설정
-CXX = g++
-CXXFLAGS = -std=c++17 -Wall -g
-
-# 타겟 설정
-TARGET = build/server
-TEST_EXEC = build/test
-
 # 외부 라이브러리 설정
 EXTERNAL_DIR = external
 
@@ -18,9 +10,18 @@ GTEST_INCLUDE = $(GTEST_DIR)/googletest/include
 RAPIDJSON_DIR = $(EXTERNAL_DIR)/rapidjson
 RAPIDJSON_INCLUDE = $(RAPIDJSON_DIR)/include
 
-# nlohmann/json 설정
+### nlohmann/json 설정
 NLOHMANN_JSON_DIR = $(EXTERNAL_DIR)/nlohmann_json
 NLOHMANN_JSON_INCLUDE = $(NLOHMANN_JSON_DIR)/include
+
+### MySQL 설정
+MYSQL_LIB = /usr/lib/x86_64-linux-gnu/libmysqlclient.so
+MYSQL_INCLUDE = /usr/include/mysql
+
+### Redis (hiredis) 설정
+HIREDIS_DIR = $(EXTERNAL_DIR)/hiredis
+HIREDIS_LIB = $(HIREDIS_DIR)/libhiredis.a
+HIREDIS_INCLUDE = $(HIREDIS_DIR)/hiredis
 
 # 소스 및 테스트 파일 경로
 SRC_DIR = src
@@ -30,7 +31,7 @@ TEST_DIR = tests/unit
 Message_DIR = src/server/messages
 
 # 인클루드 및 유틸리티 경로 설정
-INCLUDE_DIRS = $(UTILS_DIR) $(GTEST_INCLUDE) $(RAPIDJSON_INCLUDE) $(Message_DIR)
+INCLUDE_DIRS = $(UTILS_DIR) $(GTEST_INCLUDE) $(RAPIDJSON_INCLUDE) $(Message_DIR) $(HIREDIS_INCLUDE) $(MYSQL_INCLUDE)
 
 # 소스 파일
 SRC = $(SRC_DIR)/main.cpp \
@@ -62,7 +63,7 @@ INCLUDES = $(addprefix -I, $(INCLUDE_DIRS))
 all: check-dependencies $(TARGET)
 
 # 외부 라이브러리 확인 및 다운로드
-check-dependencies: $(PROTOBUF_INCLUDE) $(LIBXML2_INCLUDE) $(GTEST_LIB) $(RAPIDJSON_INCLUDE) $(NLOHMANN_JSON_INCLUDE)
+check-dependencies: $(PROTOBUF_INCLUDE) $(LIBXML2_INCLUDE) $(GTEST_LIB) $(RAPIDJSON_INCLUDE) $(NLOHMANN_JSON_INCLUDE) $(MYSQL_LIB) $(HIREDIS_LIB)
 
 # 테스트 실행
 test: $(TEST_EXEC)
@@ -82,8 +83,7 @@ clean-all:
 	rm -rf $(EXTERNAL_DIR)
 
 # 다운로드 및 빌드 타겟
-download: $(GTEST_LIB) $(RAPIDJSON_INCLUDE) $(NLOHMANN_JSON_INCLUDE)
-
+download: $(GTEST_LIB) $(RAPIDJSON_INCLUDE) $(NLOHMANN_JSON_INCLUDE) $(MYSQL_LIB) $(HIREDIS_LIB)
 
 ########## [ 빌드 규칙 ] #############
 
@@ -94,6 +94,22 @@ $(GTEST_LIB):
 		git clone --depth=1 https://github.com/google/googletest.git $(GTEST_DIR); \
 		rm -rf $(GTEST_DIR)/.git; \
 		cd $(GTEST_DIR) && cmake . && make; \
+	fi
+
+# MySQL 설치 확인
+$(MYSQL_LIB):
+	@if ! dpkg -s libmysqlclient-dev > /dev/null 2>&1; then \
+		echo "MySQL client library not found. Installing..."; \
+		sudo apt-get update && sudo apt-get install -y libmysqlclient-dev; \
+	fi
+
+# Redis (hiredis) 설치 확인 및 빌드
+$(HIREDIS_LIB):
+	@if [ ! -d "$(HIREDIS_DIR)" ]; then \
+		echo "hiredis not found. Downloading..."; \
+		git clone --depth=1 https://github.com/redis/hiredis.git $(HIREDIS_DIR); \
+		rm -rf $(HIREDIS_DIR)/.git; \
+		cd $(HIREDIS_DIR) && make && sudo make install; \
 	fi
 
 # Protobuf 설치 확인
@@ -128,11 +144,11 @@ $(NLOHMANN_JSON_INCLUDE):
 
 # 서버 빌드 규칙
 $(TARGET): $(OBJ)
-	$(CXX) $(OBJ) -o $(TARGET) -lprotobuf -lxml2
+	$(CXX) $(OBJ) -o $(TARGET) -lprotobuf -lxml2 -lmysqlclient -lhiredis
 
 # 테스트 실행 파일 빌드
 $(TEST_EXEC): $(OBJ) $(TEST_OBJ)
-	$(CXX) $(OBJ) $(TEST_OBJ) -o $(TEST_EXEC) -pthread -lprotobuf -lxml2 -lgtest
+	$(CXX) $(OBJ) $(TEST_OBJ) -o $(TEST_EXEC) -pthread -lprotobuf -lxml2 -lgtest -lmysqlclient -lhiredis
 
 # 오브젝트 파일 생성 규칙
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
