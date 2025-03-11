@@ -5,10 +5,6 @@ labels: ["risk", "discussion"]
 assignees: []
 
 body:
-  - type: markdown
-    attributes:
-      value: |
-        잠재적 위험 보고
 
   - type: input
     id: risk_title
