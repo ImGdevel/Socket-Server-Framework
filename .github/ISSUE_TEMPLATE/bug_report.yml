@@ -5,10 +5,6 @@ labels: ["bug"]
 assignees: []
 
 body:
-  - type: markdown
-    attributes:
-      value: |
-        버그 신고
 
   - type: input
     id: summary
@@ -26,7 +22,6 @@ body:
         1. 로그인 페이지로 이동
         2. 이메일과 비밀번호 입력 후 로그인 버튼 클릭
         3. 아무런 반응이 없음
-      value: ""
 
   - type: textarea
     id: expected_behavior

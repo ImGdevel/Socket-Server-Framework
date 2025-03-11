@@ -5,10 +5,6 @@ labels: ["enhancement"]
 assignees: []
 
 body:
-  - type: markdown
-    attributes:
-      value: |
-        새로운 기능 요청
 
   - type: input
     id: summary
@@ -23,7 +19,6 @@ body:
       label: "💡 상세 설명"
       description: "어떤 문제를 해결하려는지 또는 기능의 기대 동작을 설명하세요."
       placeholder: "이 기능이 필요한 이유와 어떻게 동작하면 좋을지 상세히 작성해주세요."
-      value: ""
 
   - type: textarea
     id: alternatives
