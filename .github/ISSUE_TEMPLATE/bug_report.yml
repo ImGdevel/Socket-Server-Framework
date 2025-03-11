@@ -1,0 +1,64 @@
+name: "🐞 버그 신고"
+description: "발견한 버그를 보고합니다."
+title: "[Bug] "
+labels: ["bug"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        버그 신고
+
+  - type: input
+    id: summary
+    attributes:
+      label: "🔍 버그 요약"
+      description: "버그를 간략히 설명해주세요."
+      placeholder: "예: 로그인 버튼이 동작하지 않음"
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: "⚡ 재현 방법"
+      description: "버그를 재현할 수 있도록 단계를 작성해주세요."
+      placeholder: |
+        1. 로그인 페이지로 이동
+        2. 이메일과 비밀번호 입력 후 로그인 버튼 클릭
+        3. 아무런 반응이 없음
+      value: ""
+
+  - type: textarea
+    id: expected_behavior
+    attributes:
+      label: "✔ 예상 동작"
+      description: "정상적으로 동작했을 때의 기대 결과를 작성해주세요."
+      placeholder: "로그인 버튼을 클릭하면 사용자가 대시보드로 이동해야 합니다."
+
+  - type: textarea
+    id: actual_behavior
+    attributes:
+      label: "❌ 실제 동작"
+      description: "버그 발생 시 실제 동작을 설명해주세요."
+      placeholder: "버튼을 눌러도 화면이 바뀌지 않음."
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: "🛠 환경 정보"
+      description: "어떤 환경에서 발생하는 문제인지 작성해주세요."
+      placeholder: |
+        - OS: Windows 11
+        - 브라우저: Chrome 120.0
+        - 프레임워크: Spring Boot 3.2.0
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: "✅ 체크리스트"
+      description: "버그 신고 전 아래 항목을 확인해주세요."
+      options:
+        - label: "같은 문제가 이미 보고되었는지 확인했습니다."
+        - label: "재현 가능한 최소한의 예제를 제공합니다."
+
+---

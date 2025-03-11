@@ -1,0 +1,43 @@
+name: "⚠️ 잠재적 위험 분석"
+description: "현재 프로젝트에서 발생할 가능성이 있는 위험 요소를 분석합니다."
+title: "[Risk] "
+labels: ["risk", "discussion"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        잠재적 위험 보고
+
+  - type: input
+    id: risk_title
+    attributes:
+      label: "⚠️ 위험 요약"
+      description: "발생 가능성이 있는 위험을 간략히 설명해주세요."
+      placeholder: "예: 대량 트래픽 발생 시 서버 부하 문제"
+
+  - type: textarea
+    id: impact
+    attributes:
+      label: "📉 예상 영향"
+      description: "이 위험이 현실화되었을 때 프로젝트에 미치는 영향을 설명해주세요."
+      placeholder: "서버 부하 증가로 인해 응답 시간이 길어지고, 일부 요청이 실패할 가능성이 있음."
+
+  - type: textarea
+    id: mitigation
+    attributes:
+      label: "🛡 대응 방안"
+      description: "이 위험을 완화하거나 예방할 방법을 제안해주세요."
+      placeholder: "트래픽 분산을 위해 로드 밸런서를 도입하고, 캐싱 전략을 개선."
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: "✅ 체크리스트"
+      description: "이 위험을 보고하기 전에 확인해주세요."
+      options:
+        - label: "이 위험이 프로젝트에 중요한 영향을 미칠 가능성이 높습니다."
+        - label: "가능한 해결 방법을 조사해보았습니다."
+
+---
