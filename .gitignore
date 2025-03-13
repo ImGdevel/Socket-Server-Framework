@@ -3,6 +3,7 @@
 
 # Build files
 /build/server
+/build/test_runner
 
 # Object files
 *.o
