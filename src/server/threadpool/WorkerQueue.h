@@ -17,9 +17,9 @@ public:
     T pop() {
         std::unique_lock<std::mutex> lock(mutex);
         condition.wait(lock, [this]() { return !queue.empty(); });
-        T task = queue.front();
+        T item = std::move(queue.front());
         queue.pop();
-        return task;
+        return item;
     }
 
 private:

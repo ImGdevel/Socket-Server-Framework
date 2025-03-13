@@ -60,6 +60,7 @@ SRC = $(SRC_DIR)/main.cpp \
 # 테스트 파일
 TEST_SRC = 	$(TEST_DIR)/main_test.cpp \
 			$(UNIT_TEST_DIR)/WorkerQueueTest.cpp \
+			$(UNIT_TEST_DIR)/WorkerTest.cpp
 
 
 # 오브젝트 파일 경로
