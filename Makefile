@@ -1,3 +1,11 @@
+# 컴파일러 기본 옵션
+CXX = g++
+CXXFLAGS = -std=c++17 -Wall -Wextra -g
+
+# 빌드 결과 타겟 설정
+TARGET = build/server
+TEST_EXEC = build/test_runner
+
 # 외부 라이브러리 설정
 EXTERNAL_DIR = external
 
@@ -42,6 +50,7 @@ SRC = $(SRC_DIR)/main.cpp \
       $(APP_DIR)/threadpool/ThreadPool.cpp \
       $(APP_DIR)/dispatcher/MessageDispatcher.cpp \
       $(APP_DIR)/dispatcher/HandlerConfigurator.cpp \
+	  $(APP_DIR)/dispatcher/MessageDispatcherFactory.cpp \
       $(APP_DIR)/handler/TestEventHandler.cpp \
 	  $(APP_DIR)/handler/TestJSONEventHandler.cpp \
       $(APP_DIR)/chat/ChatRoom.cpp \
