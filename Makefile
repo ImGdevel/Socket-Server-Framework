@@ -35,7 +35,9 @@ HIREDIS_INCLUDE = $(HIREDIS_DIR)/hiredis
 SRC_DIR = src
 APP_DIR = $(SRC_DIR)/server
 UTILS_DIR = src/utils
-TEST_DIR = tests/unit
+TEST_DIR = test
+UNIT_TEST_DIR = $(TEST_DIR)/unit
+INTEGRATION_TEST_DIR = $(TEST_DIR)/integration
 Message_DIR = src/server/messages
 
 # 인클루드 및 유틸리티 경로 설정
@@ -57,8 +59,9 @@ SRC = $(SRC_DIR)/main.cpp \
       $(APP_DIR)/chat/ChatRoomManager.cpp
 
 # 테스트 파일
-TEST_SRC = $(TEST_DIR)/ServerTest.cpp \
-           $(TEST_DIR)/ChatRoomTest.cpp
+TEST_SRC = 	$(TEST_DIR)/main_test.cpp
+
+
 
 # 오브젝트 파일 경로
 OBJ_DIR = build/obj
@@ -156,8 +159,9 @@ $(TARGET): $(OBJ)
 	$(CXX) $(OBJ) -o $(TARGET) -lprotobuf -lxml2 -lmysqlclient -lhiredis
 
 # 테스트 실행 파일 빌드
-$(TEST_EXEC): $(OBJ) $(TEST_OBJ)
-	$(CXX) $(OBJ) $(TEST_OBJ) -o $(TEST_EXEC) -pthread -lprotobuf -lxml2 -lgtest -lmysqlclient -lhiredis
+$(TEST_EXEC): $(TEST_OBJ) $(OBJ)
+	$(CXX) $(TEST_OBJ) $(filter-out build/obj/main.o, $(OBJ)) -o $(TEST_EXEC) -pthread -lprotobuf -lxml2 -lgtest -lgtest_main -lmysqlclient -lhiredis
+
 
 # 오브젝트 파일 생성 규칙
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
