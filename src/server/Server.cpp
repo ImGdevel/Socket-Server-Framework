@@ -35,11 +35,14 @@ void Server::run() {
 
 void Server::terminate() {
     if (reactor != nullptr) {
+        //reactor 종료
         reactor->stop();
         reactor = nullptr;
         Logger::info("Reactor stopped.");
     }
     if (threadPool != nullptr) {
+        // threadpool 종료
+        threadPool->stop();
         threadPool = nullptr;
         Logger::info("Thread pool shutdown.");
     }

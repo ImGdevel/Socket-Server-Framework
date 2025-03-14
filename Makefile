@@ -62,6 +62,7 @@ TEST_SRC = 	$(TEST_DIR)/main_test.cpp \
 			$(UNIT_TEST_DIR)/WorkerQueueTest.cpp \
 			$(UNIT_TEST_DIR)/WorkerTest.cpp \
 			$(UNIT_TEST_DIR)/ClientSessionTest.cpp \
+			$(INTEGRATION_TEST_DIR)/server_test.cpp \
 
 
 # 오브젝트 파일 경로

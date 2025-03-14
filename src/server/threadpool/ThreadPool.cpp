@@ -2,6 +2,7 @@
 #include "../reactor/Worker.h"
 #include <memory>
 #include <stdexcept>
+#include "Logger.h"
 
 using namespace std;
 
@@ -13,9 +14,7 @@ ThreadPool::ThreadPool(int numThreads) : taskQueue(make_shared<WorkerQueue<std::
 }
 
 ThreadPool::~ThreadPool(){
-    for (auto& worker : workers) {
-        worker->stop();
-    }
+    stop();
 }
 
 // 작업 Queue에 작업 할당
@@ -24,4 +23,12 @@ void ThreadPool::enqueueTask(const function<void()>& task) {
         return;
     }
     taskQueue->push(task);
+}
+
+// ThreadPool내 Worker 정리
+void ThreadPool::stop() {
+    for (auto& worker : workers) {
+        worker->stop();
+    }
+    Logger::info("All workers stopped.");
 }
