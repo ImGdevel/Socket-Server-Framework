@@ -1,0 +1,18 @@
+# Compiler/IDE files
+.vscode
+
+# Build files
+/build/server
+/build/test_runner
+
+# Object files
+*.o
+/build/obj
+/build/obj/*
+
+# Log files
+*.log
+*/log
+
+# External libraries
+/external/*
