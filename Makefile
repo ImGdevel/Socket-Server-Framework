@@ -11,8 +11,9 @@ EXTERNAL_DIR = external
 
 ### Google Test 설정
 GTEST_DIR = $(EXTERNAL_DIR)/googletest
-GTEST_LIB = $(GTEST_DIR)/build/lib/libgtest.a
-GTEST_INCLUDE = $(GTEST_DIR)/googletest/include
+GTEST_BUILD_DIR = $(GTEST_DIR)/build
+GTEST_LIBS = $(GTEST_BUILD_DIR)/lib/libgtest.a $(GTEST_BUILD_DIR)/lib/libgtest_main.a
+GTEST_INCLUDE = $(GTEST_DIR)/googletest/include $(GTEST_DIR)/googlemock/include
 
 ### RapidJSON 설정
 RAPIDJSON_DIR = $(EXTERNAL_DIR)/rapidjson
@@ -35,11 +36,11 @@ HIREDIS_INCLUDE = $(HIREDIS_DIR)/hiredis
 SRC_DIR = src
 APP_DIR = $(SRC_DIR)/server
 UTILS_DIR = src/utils
-TEST_DIR = tests/unit
+TEST_DIR = test
+UNIT_TEST_DIR = $(TEST_DIR)/unit
+INTEGRATION_TEST_DIR = $(TEST_DIR)/integration
 Message_DIR = src/server/messages
 
-# 인클루드 및 유틸리티 경로 설정
-INCLUDE_DIRS = $(UTILS_DIR) $(GTEST_INCLUDE) $(RAPIDJSON_INCLUDE) $(Message_DIR) $(HIREDIS_INCLUDE) $(MYSQL_INCLUDE)
 
 # 소스 파일
 SRC = $(SRC_DIR)/main.cpp \
@@ -57,8 +58,12 @@ SRC = $(SRC_DIR)/main.cpp \
       $(APP_DIR)/chat/ChatRoomManager.cpp
 
 # 테스트 파일
-TEST_SRC = $(TEST_DIR)/ServerTest.cpp \
-           $(TEST_DIR)/ChatRoomTest.cpp
+TEST_SRC = 	$(TEST_DIR)/main_test.cpp \
+			$(UNIT_TEST_DIR)/WorkerQueueTest.cpp \
+			$(UNIT_TEST_DIR)/WorkerTest.cpp \
+			$(UNIT_TEST_DIR)/ClientSessionTest.cpp \
+			$(INTEGRATION_TEST_DIR)/server_test.cpp \
+
 
 # 오브젝트 파일 경로
 OBJ_DIR = build/obj
@@ -66,16 +71,18 @@ OBJ = $(SRC:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
 TEST_OBJ = $(TEST_SRC:$(TEST_DIR)/%.cpp=$(OBJ_DIR)/%.o)
 
 # 인클루드 경로
+INCLUDE_DIRS = $(SRC_DIR) $(GTEST_INCLUDE) $(RAPIDJSON_INCLUDE) $(NLOHMANN_JSON_DIR)/include \
+               $(HIREDIS_INCLUDE) $(MYSQL_INCLUDE) $(UTILS_DIR) $(Message_DIR)
 INCLUDES = $(addprefix -I, $(INCLUDE_DIRS))
 
 # 기본 타겟: 서버 빌드 
 all: check-dependencies $(TARGET)
 
 # 외부 라이브러리 확인 및 다운로드
-check-dependencies: $(PROTOBUF_INCLUDE) $(LIBXML2_INCLUDE) $(GTEST_LIB) $(RAPIDJSON_INCLUDE) $(NLOHMANN_JSON_INCLUDE) $(MYSQL_LIB) $(HIREDIS_LIB)
+check-dependencies: $(PROTOBUF_INCLUDE) $(LIBXML2_INCLUDE) $(GTEST_LIBS) $(RAPIDJSON_INCLUDE) $(NLOHMANN_JSON_INCLUDE) $(MYSQL_LIB) $(HIREDIS_LIB)
 
 # 테스트 실행
-test: $(TEST_EXEC)
+test: check-dependencies $(TEST_EXEC)
 	./$(TEST_EXEC)
 
 # clean 규칙
@@ -92,18 +99,22 @@ clean-all:
 	rm -rf $(EXTERNAL_DIR)
 
 # 다운로드 및 빌드 타겟
-download: $(GTEST_LIB) $(RAPIDJSON_INCLUDE) $(NLOHMANN_JSON_INCLUDE) $(MYSQL_LIB) $(HIREDIS_LIB)
+download: $(GTEST_LIBS) $(RAPIDJSON_INCLUDE) $(NLOHMANN_JSON_INCLUDE) $(MYSQL_LIB) $(HIREDIS_LIB)
 
 ########## [ 빌드 규칙 ] #############
 
-# Google Test 설치 확인 및 빌드
-$(GTEST_LIB):
+# Google Test 빌드 규칙
+$(GTEST_LIBS):
 	@if [ ! -d "$(GTEST_DIR)" ]; then \
 		echo "Google Test not found. Downloading..."; \
 		git clone --depth=1 https://github.com/google/googletest.git $(GTEST_DIR); \
 		rm -rf $(GTEST_DIR)/.git; \
-		cd $(GTEST_DIR) && cmake . && make; \
 	fi
+	@if [ ! -d "$(GTEST_BUILD_DIR)" ]; then \
+		mkdir -p $(GTEST_BUILD_DIR); \
+		cd $(GTEST_BUILD_DIR) && cmake .. && make; \
+	fi
+	@ls -l $(GTEST_BUILD_DIR)/lib/
 
 # MySQL 설치 확인
 $(MYSQL_LIB):
@@ -156,8 +167,8 @@ $(TARGET): $(OBJ)
 	$(CXX) $(OBJ) -o $(TARGET) -lprotobuf -lxml2 -lmysqlclient -lhiredis
 
 # 테스트 실행 파일 빌드
-$(TEST_EXEC): $(OBJ) $(TEST_OBJ)
-	$(CXX) $(OBJ) $(TEST_OBJ) -o $(TEST_EXEC) -pthread -lprotobuf -lxml2 -lgtest -lmysqlclient -lhiredis
+$(TEST_EXEC): $(TEST_OBJ) $(OBJ) $(GTEST_LIBS)
+	$(CXX) $(TEST_OBJ) $(filter-out build/obj/main.o, $(OBJ)) $(GTEST_LIBS) -o $(TEST_EXEC) -pthread
 
 # 오브젝트 파일 생성 규칙
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp

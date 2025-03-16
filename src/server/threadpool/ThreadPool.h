@@ -14,6 +14,7 @@ public:
     ~ThreadPool();
     
     void enqueueTask(const std::function<void()>& task);
+    void stop();
 
 private:
     std::shared_ptr<WorkerQueue<std::function<void()>>> taskQueue;
