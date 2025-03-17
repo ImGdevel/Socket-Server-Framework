@@ -30,5 +30,5 @@ void ThreadPool::stop() {
     for (auto& worker : workers) {
         worker->stop();
     }
-    Logger::info("All workers stopped.");
+    Logger::debug("Thread pool shutdown.");
 }
