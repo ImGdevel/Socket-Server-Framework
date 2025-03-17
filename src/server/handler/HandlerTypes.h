@@ -6,9 +6,9 @@
 #include <string>
 #include "../session/ClientSession.h"
 #include "../messages/IMessage.h"
+#include "ClientRequest.h"
 
 using MessagePtr = std::unique_ptr<IMessage>;
-
-using HandlerFunc = std::function<void(const std::shared_ptr<ClientSession>&, const MessagePtr&)>;
+using HandlerFunc = std::function<void(const ClientRequest&)>;
 
 #endif
