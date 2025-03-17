@@ -19,10 +19,11 @@ void MessageDispatcher::handleEvent(const shared_ptr<ClientSession>& session, co
     }
 
     string type = parsedMessage->getType();
-
     auto it = handlers.find(type);
+    
     if (it != handlers.end()) {
-        it->second(session, parsedMessage);
+        ClientRequest ClientRequest(session, std::move(parsedMessage));
+        it->second(ClientRequest);
     } else {
         Logger::error("No handler found for type: " + type);
     }
