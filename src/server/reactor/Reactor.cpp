@@ -28,6 +28,7 @@ Reactor::~Reactor() {
     clientSessions.clear();
     safeClose(epollFd);
     safeClose(serverSocket);
+    Logger::debug("Reactor stopped.");
 }
 
 void Reactor::setupServerSocket() {

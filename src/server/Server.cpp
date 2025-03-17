@@ -50,12 +50,10 @@ void Server::terminate() {
     if (reactor != nullptr) {
         reactor->stop();
         reactor = nullptr;
-        Logger::info("Reactor stopped.");
     }
     if (threadPool != nullptr) {
         threadPool->stop();
         threadPool = nullptr;
-        Logger::info("Thread pool shutdown.");
     }
     Logger::info("Server shutdown.");
 }
