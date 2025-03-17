@@ -2,6 +2,7 @@
 #include "Logger.h"
 #include "dispatcher/MessageDispatcherFactory.h"
 #include <memory>
+#include "handler/ExampleEventHandler.h"
 
 using namespace std;
 
@@ -31,6 +32,8 @@ void Server::initialize() {
     threadPool = make_unique<ThreadPool>(workerCount);
     messageDispatcher = MessageDispatcherFactory::createDispatcher("json-rapid");
     reactor = make_unique<Reactor>(port, *threadPool, *messageDispatcher);
+    
+    ExampleEventHandler exxx;
 
     Logger::debug("Server instance created");
 }

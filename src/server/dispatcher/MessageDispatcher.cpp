@@ -1,5 +1,6 @@
 #include "MessageDispatcher.h"
 #include "Logger.h"
+#include "../handler/EventRegistry.h"
 #include <memory>
 
 using namespace std;
@@ -19,11 +20,12 @@ void MessageDispatcher::handleEvent(const shared_ptr<ClientSession>& session, co
     }
 
     string type = parsedMessage->getType();
+    const auto& handlers = EventRegistry::getHandlers();
     auto it = handlers.find(type);
     
     if (it != handlers.end()) {
-        ClientRequest ClientRequest(session, std::move(parsedMessage));
-        it->second(ClientRequest);
+        ClientRequest request(session, std::move(parsedMessage));
+        it->second(request);
     } else {
         Logger::error("No handler found for type: " + type);
     }
