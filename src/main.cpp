@@ -1,4 +1,5 @@
 #include "server/Server.h"
+#include "server/ServerConfig.h"
 #include "Logger.h"
 #include <iostream>
 #include <csignal>
@@ -15,8 +16,8 @@ int main() {
     signal(SIGINT, signalHandler);
     
     auto server = Server::Builder()
-        .setPort(8080)
-        .setWorkerCount(10)
+        .setPort(ServerConfig::getPort())
+        .setWorkerCount(ServerConfig::getWorkerCount())
         .build();
     
     server->run();

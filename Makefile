@@ -45,6 +45,7 @@ Message_DIR = src/server/messages
 # 소스 파일
 SRC = $(SRC_DIR)/main.cpp \
       $(APP_DIR)/Server.cpp \
+	  $(APP_DIR)/ServerConfig.cpp \
       $(APP_DIR)/reactor/Reactor.cpp \
       $(APP_DIR)/reactor/Worker.cpp \
       $(APP_DIR)/session/ClientSession.cpp \
