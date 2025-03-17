@@ -5,18 +5,29 @@
 
 using namespace std;
 
-Server& Server::getInstance(int port, int workerCount) {
-    static Server instance(port, workerCount);
-    return instance;
+// Builder 구현
+Server::Builder& Server::Builder::setPort(int p) {
+    port = p;
+    return *this;
 }
 
+Server::Builder& Server::Builder::setWorkerCount(int count) {
+    workerCount = count;
+    return *this;
+}
+
+unique_ptr<Server> Server::Builder::build() {
+    return unique_ptr<Server>(new Server(port, workerCount));
+}
+
+// Server 생성자
 Server::Server(int port, int workerCount)
     : port(port), workerCount(workerCount) {
     initialize();
 }
 
+// Server 초기화
 void Server::initialize() {
-
     threadPool = make_unique<ThreadPool>(workerCount);
     messageDispatcher = MessageDispatcherFactory::createDispatcher("json-rapid");
     reactor = make_unique<Reactor>(port, *threadPool, *messageDispatcher);
@@ -28,20 +39,20 @@ Server::~Server() {
     terminate();
 }
 
+// Server 실행
 void Server::run() {
     Logger::info("Server is starting on port " + to_string(port) + " with " + to_string(workerCount) + " workers.");
     reactor->start();
 }
 
+// Server 종료
 void Server::terminate() {
     if (reactor != nullptr) {
-        //reactor 종료
         reactor->stop();
         reactor = nullptr;
         Logger::info("Reactor stopped.");
     }
     if (threadPool != nullptr) {
-        // threadpool 종료
         threadPool->stop();
         threadPool = nullptr;
         Logger::info("Thread pool shutdown.");

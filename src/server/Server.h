@@ -7,7 +7,15 @@
 
 class Server {
 public:
-    static Server& getInstance(int port, int workerCount);
+    class Builder {
+    public:
+        Builder& setPort(int p);
+        Builder& setWorkerCount(int count);
+        std::unique_ptr<Server> build();
+    private:
+        int port;
+        int workerCount;
+    };
 
     ~Server();
 
@@ -15,9 +23,9 @@ public:
     void terminate();
 
 private:
+    friend class Builder;
+
     Server(int port, int workerCount);
-    Server(const Server&) = delete;
-    Server& operator=(const Server&) = delete;
 
     int port;
     int workerCount;
