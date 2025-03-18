@@ -7,6 +7,8 @@
 #include <memory>
 #include "../dispatcher/MessageDispatcher.h"
 
+#include "../messages/parser/IParser.h"
+
 class ClientSession;
 class ThreadPool;
 class MessageDispatcher;
@@ -42,6 +44,7 @@ private:
     std::unordered_map<int, std::shared_ptr<ClientSession>> clientSessions;
     ThreadPool& threadPool;
     MessageDispatcher& messageDispatcher;
+    std::unique_ptr<IParser> parser;
 };
 
 #endif

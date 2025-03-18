@@ -1,6 +1,5 @@
 #include "Server.h"
 #include "Logger.h"
-#include "dispatcher/MessageDispatcherFactory.h"
 #include <memory>
 #include "handler/IEventHandler.h"
 
@@ -33,8 +32,7 @@ Server::Builder& Server::Builder::setEventHandler(IEventHandler& handler) {
 
 unique_ptr<Server> Server::Builder::build() {
     auto tp = make_unique<ThreadPool>(workerCount);
-    auto parser = make_unique<JSONParserRapid>();
-    auto md = make_unique<MessageDispatcher>(move(parser));
+    auto md = make_unique<MessageDispatcher>();
 
     TestJSONEventHandler handler;
     HandlerConfigurator::registerHandlers(*md, handler);
