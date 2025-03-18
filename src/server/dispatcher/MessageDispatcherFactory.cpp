@@ -7,14 +7,14 @@
 
 using namespace std;
 
-unique_ptr<MessageDispatcher> MessageDispatcherFactory::createDispatcher(const string& format) {
+unique_ptr<MessageDispatcher> MessageDispatcherFactory::createDispatcher(const string& format, IEventHandler& handler) {
     unique_ptr<MessageDispatcher> dispatcher = nullptr;
 
     if(format == "json"){
-        dispatcher = createJSONDispatcher();
+        dispatcher = createJSONDispatcher(handler);
     }
     else if(format == "json-rapid"){
-        dispatcher = createJSONRapidDispatcher();
+        dispatcher = createJSONRapidDispatcher(handler);
     }else{
         throw runtime_error("Failed to bind socket");
     }
@@ -22,21 +22,19 @@ unique_ptr<MessageDispatcher> MessageDispatcherFactory::createDispatcher(const s
     return dispatcher;
 }
 
-unique_ptr<MessageDispatcher> MessageDispatcherFactory::createJSONDispatcher() {
+unique_ptr<MessageDispatcher> MessageDispatcherFactory::createJSONDispatcher(IEventHandler& handler) {
     auto parser = make_unique<JSONParser>();
     auto dispatcher = make_unique<MessageDispatcher>(move(parser));
 
-    TestJSONEventHandler handler;
     HandlerConfigurator::registerHandlers(*dispatcher, handler);
 
     return dispatcher;
 }
 
-unique_ptr<MessageDispatcher> MessageDispatcherFactory::createJSONRapidDispatcher() {
+unique_ptr<MessageDispatcher> MessageDispatcherFactory::createJSONRapidDispatcher(IEventHandler& handler) {
     auto parser = make_unique<JSONParserRapid>();
     auto dispatcher = make_unique<MessageDispatcher>(move(parser));
 
-    TestJSONEventHandler handler;
     HandlerConfigurator::registerHandlers(*dispatcher, handler);
 
     return dispatcher;

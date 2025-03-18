@@ -2,8 +2,10 @@
 #define SERVER_H
 
 #include <memory>
+#include <string>
 #include "reactor/Reactor.h"
 #include "threadpool/ThreadPool.h"
+#include "handler/IEventHandler.h"
 
 class Server {
 public:
@@ -11,10 +13,14 @@ public:
     public:
         Builder& setPort(int p);
         Builder& setWorkerCount(int count);
+        Builder& setMessageType(const std::string& type);
+        Builder& setEventHandler(IEventHandler& handler);
         std::unique_ptr<Server> build();
     private:
         int port;
         int workerCount;
+        std::string messageDispatcherType;
+        IEventHandler* eventHandler;
     };
 
     ~Server();
@@ -25,7 +31,7 @@ public:
 private:
     friend class Builder;
 
-    Server(int port, int workerCount);
+    Server(int port, int workerCount, std::unique_ptr<ThreadPool> tp, std::unique_ptr<MessageDispatcher> md);
 
     int port;
     int workerCount;

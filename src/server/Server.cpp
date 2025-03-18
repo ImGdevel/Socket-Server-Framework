@@ -2,6 +2,11 @@
 #include "Logger.h"
 #include "dispatcher/MessageDispatcherFactory.h"
 #include <memory>
+#include "handler/IEventHandler.h"
+
+#include "handler/TestJSONEventHandler.h"
+#include "messages/parser/JsonParser.h"
+#include "dispatcher/HandlerConfigurator.h"
 
 using namespace std;
 
@@ -16,22 +21,36 @@ Server::Builder& Server::Builder::setWorkerCount(int count) {
     return *this;
 }
 
+Server::Builder& Server::Builder::setMessageType(const string& type) {
+    messageDispatcherType = type;
+    return *this;
+}
+
+Server::Builder& Server::Builder::setEventHandler(IEventHandler& handler) {
+    eventHandler = &handler;
+    return *this;
+}
+
 unique_ptr<Server> Server::Builder::build() {
-    return unique_ptr<Server>(new Server(port, workerCount));
+    auto tp = make_unique<ThreadPool>(workerCount);
+    auto parser = make_unique<JSONParserRapid>();
+    auto md = make_unique<MessageDispatcher>(move(parser));
+
+    TestJSONEventHandler handler;
+    HandlerConfigurator::registerHandlers(*md, handler);
+
+    return unique_ptr<Server>(new Server(port, workerCount, move(tp), move(md)));
 }
 
 // Server 생성자
-Server::Server(int port, int workerCount)
-    : port(port), workerCount(workerCount) {
+Server::Server(int port, int workerCount, unique_ptr<ThreadPool> tp, unique_ptr<MessageDispatcher> md)
+    : port(port), workerCount(workerCount), threadPool(move(tp)), messageDispatcher(move(md)) {
     initialize();
 }
 
 // Server 초기화
 void Server::initialize() {
-    threadPool = make_unique<ThreadPool>(workerCount);
-    messageDispatcher = MessageDispatcherFactory::createDispatcher("json-rapid");
     reactor = make_unique<Reactor>(port, *threadPool, *messageDispatcher);
-
     Logger::debug("Server instance created");
 }
 
