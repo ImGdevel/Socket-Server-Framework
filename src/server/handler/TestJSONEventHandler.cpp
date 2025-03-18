@@ -32,8 +32,6 @@ void TestJSONEventHandler::onLogin(const ClientRequest& ClientRequest) const {
         string echoMessage = "MSG: " + message->serialize();
         Logger::info("send message : " + echoMessage);
         session->sendMessage(echoMessage);
-    } else {
-        Logger::error("Session is null");
     }
 }
 
@@ -49,8 +47,6 @@ void TestJSONEventHandler::onChat(const ClientRequest& ClientRequest) const {
             Logger::info("send message : " + echoMessage);
             session->sendMessage(jsonResponse);
         }
-    } else {
-        Logger::error("Session is null");
     }
 }
 
@@ -66,8 +62,6 @@ void TestJSONEventHandler::onEcho(const ClientRequest& ClientRequest) const {
             Logger::info("send message : " + echoMessage);
             session->sendMessage(jsonResponse);
         }
-    } else {
-        Logger::error("Session is null");
     }
 }
 
@@ -83,8 +77,6 @@ void TestJSONEventHandler::onDelay(const ClientRequest& ClientRequest) const {
             Logger::info("send message : " + echoMessage);
             session->sendMessage(jsonResponse);
         }
-    } else {
-        Logger::error("Session is null");
     }
 }
 
@@ -100,8 +92,6 @@ void TestJSONEventHandler::onTask(const ClientRequest& ClientRequest) const {
             Logger::info("send message : " + echoMessage);
             session->sendMessage(jsonResponse);
         }
-    } else {
-        Logger::error("Session is null");
     }
 }
 
