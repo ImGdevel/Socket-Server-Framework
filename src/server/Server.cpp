@@ -1,7 +1,9 @@
 #include "Server.h"
 #include "Logger.h"
-#include "dispatcher/MessageDispatcherFactory.h"
 #include <memory>
+#include "messages/parser/JsonParser.h"
+#include "handler/MyEventHandler.h"
+#include "dispatcher/MessageDispatcher.h"
 
 using namespace std;
 
@@ -29,9 +31,18 @@ Server::Server(int port, int workerCount)
 // Server 초기화
 void Server::initialize() {
     threadPool = make_unique<ThreadPool>(workerCount);
-    messageDispatcher = MessageDispatcherFactory::createDispatcher("json-rapid");
+
+    eventRegistry = make_unique<EventRegistry>();
+
+    auto parser = make_unique<JSONParser>();
+
+    messageDispatcher = make_unique<MessageDispatcher>(move(parser), move(eventRegistry));
+
     reactor = make_unique<Reactor>(port, *threadPool, *messageDispatcher);
 
+    MyEventHandler handler;
+    eventRegistry->registerEvents(handler);
+    
     Logger::debug("Server instance created");
 }
 

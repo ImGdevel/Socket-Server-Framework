@@ -1,15 +1,12 @@
 #include "MessageDispatcher.h"
+#include "EventRegistry.h"
 #include "Logger.h"
-#include <memory>
 
 using namespace std;
 
-MessageDispatcher::MessageDispatcher(unique_ptr<IParser> parser) 
-    : parser(move(parser)) {}
+MessageDispatcher::MessageDispatcher(unique_ptr<IParser> parser, unique_ptr<EventRegistry> registry) 
+    : parser(move(parser)), eventRegistry(move(registry)) {}
 
-void MessageDispatcher::registerHandler(const string& type, HandlerFunc handler) {
-    handlers[type] = handler;
-}
 
 void MessageDispatcher::handleEvent(const shared_ptr<ClientSession>& session, const string& message) {
     auto parsedMessage = parser->parse(message);
@@ -18,13 +15,8 @@ void MessageDispatcher::handleEvent(const shared_ptr<ClientSession>& session, co
         return;
     }
 
-    string type = parsedMessage->getType();
-    auto it = handlers.find(type);
+    std::string type = parsedMessage->getType();
+    ClientRequest request(session, move(parsedMessage));
     
-    if (it != handlers.end()) {
-        ClientRequest ClientRequest(session, std::move(parsedMessage));
-        it->second(ClientRequest);
-    } else {
-        Logger::error("No handler found for type: " + type);
-    }
+    eventRegistry->dispatchEvent(type, request);
 }
