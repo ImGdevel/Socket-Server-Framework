@@ -11,7 +11,7 @@ using namespace std;
 
 static Server* serverInstance; 
 
-void signalHandler(int sig) {
+void signalHandler(int /*sig*/) {
     Logger::debug("Received termination signal. Shutting down server.");
 
     if (serverInstance) {

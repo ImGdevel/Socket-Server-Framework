@@ -2,10 +2,8 @@
 #include "Logger.h"
 #include <memory>
 #include <stdexcept>
-#include "handler/IEventHandler.h"
-#include "handler/TestJSONEventHandler.h"
-#include "messages/parser/JsonParser.h"
-#include "dispatcher/EventRegistry.h"
+#include "IEventHandler.h"
+#include "EventRegistry.h"
 
 using namespace std;
 

@@ -1,13 +1,12 @@
 #ifndef REACTOR_H
 #define REACTOR_H
 
+#include "MessageDispatcher.h"
+#include "IParser.h"
 #include <vector>
 #include <functional>
 #include <unordered_map>
 #include <memory>
-#include "../dispatcher/MessageDispatcher.h"
-
-#include "../messages/parser/IParser.h"
 
 class ClientSession;
 class ThreadPool;

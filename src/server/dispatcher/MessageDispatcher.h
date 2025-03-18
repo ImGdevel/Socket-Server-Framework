@@ -1,12 +1,12 @@
 #ifndef MESSAGEDISPATCHER_H
 #define MESSAGEDISPATCHER_H
 
-#include "../handler/HandlerTypes.h"
-#include "../messages/parser/IParser.h"
 #include <unordered_map>
 #include <utility>
 #include <memory>
 #include "EventRegistry.h"
+#include "HandlerTypes.h"
+#include "IParser.h"
 
 class MessageDispatcher {
 public:

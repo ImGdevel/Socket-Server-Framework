@@ -2,8 +2,8 @@
 #define PROTOBUFPARSER_H
 
 #include "IParser.h"
-#include <google/protobuf/message.h>
 #include "ProtobufMessage.h"
+#include <google/protobuf/message.h>
 
 template <typename T>
 class ProtobufParser : public IParser {
