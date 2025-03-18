@@ -9,14 +9,13 @@
 
 class MessageDispatcher {
 public:
-    MessageDispatcher(std::unique_ptr<IParser> parser);
+    MessageDispatcher();
 
     void registerHandler(const std::string& type, HandlerFunc handler);
-    void handleEvent(const std::shared_ptr<ClientSession>& session, const std::string& message);
+    void handleEvent(const ClientRequest& ClientRequest);
 
 private:
     std::unordered_map<std::string, HandlerFunc> handlers;
-    std::unique_ptr<IParser> parser;
 };
 
 #endif
