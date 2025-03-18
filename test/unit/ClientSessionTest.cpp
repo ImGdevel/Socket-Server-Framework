@@ -1,5 +1,5 @@
-#include "../src/server/session/ClientSession.h"
 #include <gtest/gtest.h>
+#include "ClientSession.h"
 #include <unistd.h>
 #include <sys/socket.h>
 #include <netinet/in.h>

@@ -1,7 +1,7 @@
 #include "Reactor.h"
+#include "ClientSession.h"
+#include "ThreadPool.h"
 #include "Logger.h"
-#include "../session/ClientSession.h"
-#include "../threadpool/ThreadPool.h"
 #include <iostream>
 #include <sys/socket.h>
 #include <sys/epoll.h>
@@ -12,9 +12,8 @@
 #include <stdexcept>
 #include <memory>
 
-#include "../messages/parser/JsonParser.h"
-
-#include "../handler/ClientRequest.h"
+#include "JsonParser.h"
+#include "ClientRequest.h"
 
 using namespace std;
 
