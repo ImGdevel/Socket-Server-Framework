@@ -57,7 +57,8 @@ SRC = $(SRC_DIR)/main.cpp \
       $(APP_DIR)/handler/TestEventHandler.cpp \
 	  $(APP_DIR)/handler/TestJSONEventHandler.cpp \
       $(APP_DIR)/chat/ChatRoom.cpp \
-      $(APP_DIR)/chat/ChatRoomManager.cpp
+      $(APP_DIR)/chat/ChatRoomManager.cpp \
+	  $(APP_DIR)/filter/FilterChain.cpp \
 
 # 테스트 파일
 TEST_SRC = 	$(TEST_DIR)/main_test.cpp \

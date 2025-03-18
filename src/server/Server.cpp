@@ -4,6 +4,7 @@
 #include <stdexcept>
 #include "IEventHandler.h"
 #include "EventRegistry.h"
+#include "DefaultFilter.h"
 
 using namespace std;
 
@@ -60,19 +61,26 @@ unique_ptr<Server> Server::Builder::build() {
     auto tp = make_unique<ThreadPool>(workerCount);
     auto md = make_unique<MessageDispatcher>(move(eventRegistry));
 
-    return unique_ptr<Server>(new Server(port, workerCount, move(tp), move(md)));
+    // 기본 필터 (테스트 용)
+    if (filterChain->isEmpty()) {
+        Logger::warning("No filters added, using default filter chain");
+        filterChain->addFilter(make_unique<DefaultFilter>());
+    }
+
+    return unique_ptr<Server>(new Server(port, workerCount, move(tp), move(md), move(filterChain)
+    ));
 }
 
 // Server 생성자
-Server::Server(int port, int workerCount, unique_ptr<ThreadPool> tp, unique_ptr<MessageDispatcher> md)
-    : port(port), workerCount(workerCount), threadPool(move(tp)), messageDispatcher(move(md)) {
+Server::Server(int port, int workerCount, unique_ptr<ThreadPool> tp, unique_ptr<MessageDispatcher> md, unique_ptr<FilterChain> fc)
+    : port(port), workerCount(workerCount), threadPool(move(tp)), messageDispatcher(move(md)), filterChain(move(fc)) {
     initialize();
 }
 
 // Server 초기화
 void Server::initialize() {
-    reactor = make_unique<Reactor>(port, *threadPool, *messageDispatcher);
-    Logger::debug("Server instance created with port");
+    reactor = make_unique<Reactor>(port, *threadPool, *messageDispatcher,*filterChain);
+    Logger::debug("Server instance created with port " + to_string(port));
 }
 
 Server::~Server() {
