@@ -1,6 +1,9 @@
 ![소캣 서버 아키택쳐-페이지-3 drawio (1)](https://github.com/user-attachments/assets/d7dcb3db-2a14-46c4-9a90-3bcb58166379)
 
-🇺🇸 [English](https://github.com/ImGdevel/Custom-Socket-Server) /  🇰🇷 한국어 /  🇨🇳 中文
+🇺🇸 [English](https://github.com/ImGdevel/Custom-Socket-Server) / 
+🇰🇷 한국어 /
+🇨🇳 [中文](https://github.com/ImGdevel/Socket-Server-Framework/blob/main/docs/README_cn.md) /
+🇪🇸 [Español](https://github.com/ImGdevel/Socket-Server-Framework/blob/main/docs/README_es.md)
 
 <br>
 
@@ -150,6 +153,7 @@ make clean-all # 빌드 및 의존성 삭제
 
 자세한 사항은 LICENSE 파일을 참고하세요.
 
+<br>
 
 ## 📜 기여하기
 프로젝트 개선을 위한 PR을 환영합니다!
