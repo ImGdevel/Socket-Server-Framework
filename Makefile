@@ -71,7 +71,7 @@ TEST_OBJ = $(TEST_SRC:$(TEST_DIR)/%.cpp=$(OBJ_DIR)/%.o)
 
 # 인클루드 경로
 INCLUDE_DIRS = $(SRC_DIR) $(GTEST_INCLUDE) $(RAPIDJSON_INCLUDE) $(NLOHMANN_JSON_DIR)/include \
-               $(HIREDIS_INCLUDE) $(MYSQL_INCLUDE) $(UTILS_DIR) $(Message_DIR)
+               $(HIREDIS_INCLUDE) $(MYSQL_INCLUDE) $(UTILS_DIR) $(Message_DIR) $(shell find $(APP_DIR) -type d)
 INCLUDES = $(addprefix -I, $(INCLUDE_DIRS))
 
 # 기본 타겟: 서버 빌드 

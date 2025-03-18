@@ -1,12 +1,12 @@
 #ifndef SERVER_H
 #define SERVER_H
 
+#include "Reactor.h"
+#include "ThreadPool.h"
+#include "IEventHandler.h"
+#include "EventRegistry.h"
 #include <memory>
 #include <string>
-#include "reactor/Reactor.h"
-#include "threadpool/ThreadPool.h"
-#include "handler/IEventHandler.h"
-#include "dispatcher/EventRegistry.h"
 
 class Server {
 public:
