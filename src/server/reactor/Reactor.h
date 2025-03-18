@@ -1,11 +1,12 @@
 #ifndef REACTOR_H
 #define REACTOR_H
 
+#include "MessageDispatcher.h"
+#include "IParser.h"
 #include <vector>
 #include <functional>
 #include <unordered_map>
 #include <memory>
-#include "../dispatcher/MessageDispatcher.h"
 
 class ClientSession;
 class ThreadPool;
@@ -42,6 +43,7 @@ private:
     std::unordered_map<int, std::shared_ptr<ClientSession>> clientSessions;
     ThreadPool& threadPool;
     MessageDispatcher& messageDispatcher;
+    std::unique_ptr<IParser> parser;
 };
 
 #endif

@@ -1,22 +1,23 @@
 #ifndef MESSAGEDISPATCHER_H
 #define MESSAGEDISPATCHER_H
 
-#include "../handler/HandlerTypes.h"
-#include "../messages/parser/IParser.h"
+#include "EventRegistry.h"
+#include "HandlerTypes.h"
+#include "IParser.h"
 #include <unordered_map>
 #include <utility>
 #include <memory>
 
+
 class MessageDispatcher {
 public:
-    MessageDispatcher(std::unique_ptr<IParser> parser);
+    MessageDispatcher(std::unique_ptr<EventRegistry> registry);
 
-    void registerHandler(const std::string& type, HandlerFunc handler);
-    void handleEvent(const std::shared_ptr<ClientSession>& session, const std::string& message);
+    void handleEvent(const ClientRequest& ClientRequest);
 
 private:
-    std::unordered_map<std::string, HandlerFunc> handlers;
-    std::unique_ptr<IParser> parser;
+    std::unique_ptr<EventRegistry> eventRegistry;
+
 };
 
 #endif

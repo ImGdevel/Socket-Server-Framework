@@ -1,7 +1,7 @@
 #include "Reactor.h"
+#include "ClientSession.h"
+#include "ThreadPool.h"
 #include "Logger.h"
-#include "../session/ClientSession.h"
-#include "../threadpool/ThreadPool.h"
 #include <iostream>
 #include <sys/socket.h>
 #include <sys/epoll.h>
@@ -12,12 +12,17 @@
 #include <stdexcept>
 #include <memory>
 
+#include "JsonParser.h"
+#include "ClientRequest.h"
+
 using namespace std;
 
 Reactor::Reactor(int port, ThreadPool& threadPool, MessageDispatcher& messageDispatcher)
         : port(port), serverSocket(-1), epollFd(-1), running(false), threadPool(threadPool), messageDispatcher(messageDispatcher) {
     setupServerSocket();
     setupIOMultiplexing();
+
+    parser = make_unique<JSONParserRapid>();
 }
 
 Reactor::~Reactor() {
@@ -28,6 +33,7 @@ Reactor::~Reactor() {
     clientSessions.clear();
     safeClose(epollFd);
     safeClose(serverSocket);
+    Logger::debug("Reactor stopped.");
 }
 
 void Reactor::setupServerSocket() {
@@ -169,7 +175,15 @@ void Reactor::handleClientEvent(int clientSocket) {
         if (session->extractMessage(message)) {
             session->setProcessing(true);
             threadPool.enqueueTask([this, session, message]() {
-                messageDispatcher.handleEvent(session, message);
+                // todo : 추후 제거할 것, 임시로 해당 위치에서 메시지를 분리한다.
+                auto parsedMessage = parser->parse(message);
+                if (!parsedMessage) {
+                    Logger::error("Failed to parse message: " + message);
+                    return;
+                }
+                ClientRequest ClientRequest(session, std::move(parsedMessage));
+
+                messageDispatcher.handleEvent(ClientRequest);
                 session->setProcessing(false);
             });
         }

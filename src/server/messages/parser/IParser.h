@@ -1,9 +1,9 @@
 #ifndef IPARSER_H
 #define IPARSER_H
 
+#include "IMessage.h"
 #include <string>
 #include <memory>
-#include "IMessage.h"
 
 class IParser {
 public:
