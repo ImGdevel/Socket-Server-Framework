@@ -6,16 +6,17 @@
 #include <unordered_map>
 #include <utility>
 #include <memory>
+#include "EventRegistry.h"
 
 class MessageDispatcher {
 public:
-    MessageDispatcher();
+    MessageDispatcher(std::unique_ptr<EventRegistry> registry);
 
-    void registerHandler(const std::string& type, HandlerFunc handler);
     void handleEvent(const ClientRequest& ClientRequest);
 
 private:
-    std::unordered_map<std::string, HandlerFunc> handlers;
+    std::unique_ptr<EventRegistry> eventRegistry;
+
 };
 
 #endif

@@ -4,22 +4,15 @@
 
 using namespace std;
 
-MessageDispatcher::MessageDispatcher() {}
+MessageDispatcher::MessageDispatcher(unique_ptr<EventRegistry> registry)
+    : eventRegistry(move(registry))
+{}
 
-void MessageDispatcher::registerHandler(const string& type, HandlerFunc handler) {
-    handlers[type] = handler;
-}
 
 void MessageDispatcher::handleEvent(const ClientRequest& ClientRequest) {
     const auto& session = ClientRequest.getSession();
     const auto& message = ClientRequest.getMessage();
 
     string type = message->getType();
-    auto it = handlers.find(type);
-    
-    if (it != handlers.end()) {
-        it->second(ClientRequest);
-    } else {
-        Logger::error("No handler found for type: " + type);
-    }
+    eventRegistry->dispatchEvent(type, ClientRequest);
 }

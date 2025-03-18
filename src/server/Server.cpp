@@ -5,7 +5,7 @@
 
 #include "handler/TestJSONEventHandler.h"
 #include "messages/parser/JsonParser.h"
-#include "dispatcher/HandlerConfigurator.h"
+#include "dispatcher/EventRegistry.h"
 
 using namespace std;
 
@@ -32,10 +32,13 @@ Server::Builder& Server::Builder::setEventHandler(IEventHandler& handler) {
 
 unique_ptr<Server> Server::Builder::build() {
     auto tp = make_unique<ThreadPool>(workerCount);
-    auto md = make_unique<MessageDispatcher>();
+    
+    auto eventRegistry = make_unique<EventRegistry>();
 
     TestJSONEventHandler handler;
-    HandlerConfigurator::registerHandlers(*md, handler);
+    eventRegistry->registerHandlers(handler);
+
+    auto md = make_unique<MessageDispatcher>(move(eventRegistry));
 
     return unique_ptr<Server>(new Server(port, workerCount, move(tp), move(md)));
 }

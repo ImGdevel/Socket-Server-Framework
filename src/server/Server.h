@@ -6,6 +6,7 @@
 #include "reactor/Reactor.h"
 #include "threadpool/ThreadPool.h"
 #include "handler/IEventHandler.h"
+#include "dispatcher/EventRegistry.h"
 
 class Server {
 public:
@@ -39,6 +40,7 @@ private:
     std::unique_ptr<Reactor> reactor; 
     std::unique_ptr<ThreadPool> threadPool;
     std::unique_ptr<MessageDispatcher> messageDispatcher;
+    std::unique_ptr<EventRegistry> eventRegistry;
 
     void initialize();
 };
