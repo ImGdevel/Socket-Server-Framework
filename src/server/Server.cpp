@@ -2,10 +2,8 @@
 #include "Logger.h"
 #include <memory>
 #include <stdexcept>
-#include "handler/IEventHandler.h"
-#include "handler/TestJSONEventHandler.h"
-#include "messages/parser/JsonParser.h"
-#include "dispatcher/EventRegistry.h"
+#include "IEventHandler.h"
+#include "EventRegistry.h"
 
 using namespace std;
 
@@ -21,10 +19,6 @@ void Server::Builder::validate() const {
     if (messageDispatcherType.empty()) {
         Logger::error("Message dispatcher type must be set");
         throw invalid_argument("Message dispatcher type must be set");
-    }
-    if (!eventHandler) {
-        Logger::error("Event handler must be set");
-        throw invalid_argument("Event handler must be set");
     }
 }
 
@@ -56,8 +50,7 @@ Server::Builder& Server::Builder::setMessageType(const string& type) {
 }
 
 Server::Builder& Server::Builder::setEventHandler(IEventHandler& handler) {
-    eventHandler = &handler;
-    eventRegistry->registerHandlers(*eventHandler);
+    eventRegistry->registerHandlers(handler);
     return *this;
 }
 
@@ -89,7 +82,7 @@ Server::~Server() {
 // Server 실행
 void Server::run() {
     Logger::info("Server is starting on port " + to_string(port) + " with " + to_string(workerCount) + " workers");
-    reactor->start();
+   reactor->start();
 }
 
 // Server 종료

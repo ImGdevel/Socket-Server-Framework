@@ -1,9 +1,9 @@
 #ifndef ClientRequest_H
 #define ClientRequest_H
 
+#include "ClientSession.h"
+#include "IMessage.h"
 #include <memory>
-#include "../session/ClientSession.h"
-#include "../messages/IMessage.h"
 
 class ClientRequest {
 public:

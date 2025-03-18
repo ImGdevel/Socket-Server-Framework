@@ -1,12 +1,11 @@
 #include "TestJSONEventHandler.h"
+#include "ChatRoomManager.h"
 #include "Logger.h"
-#include "../chat/ChatRoomManager.h"
 #include <iostream>
 #include <thread>
 #include <chrono>
 #include <sstream>
 #include <rapidjson/document.h>
-
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/writer.h>
 #include <iostream>

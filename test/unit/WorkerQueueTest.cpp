@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "../../src/server/threadpool/WorkerQueue.h"
+#include "WorkerQueue.h"
 #include <thread>
 
 // 단일 요소 push/pop 테스트

@@ -1,10 +1,11 @@
 #pragma once
+
+#include "HandlerTypes.h"
+#include "ClientRequest.h"
+#include "IEventHandler.h"
+#include "Logger.h"
 #include <unordered_map>
 #include <functional>
-#include "Logger.h"
-#include "../handler/HandlerTypes.h"
-#include "../handler/ClientRequest.h"
-#include "../handler/IEventHandler.h"
 
 class EventRegistry {
 public:

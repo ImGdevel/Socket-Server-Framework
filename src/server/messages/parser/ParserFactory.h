@@ -6,7 +6,6 @@
 #include "ProtobufParser.h"
 #include "StringParser.h"
 #include <functional>
-#include <memory>
 #include <unordered_map>
 
 class ParserFactory {

@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "../src/server/threadpool/ThreadPool.h"
+#include "ThreadPool.h"
 #include <atomic>
 #include <thread>
 
