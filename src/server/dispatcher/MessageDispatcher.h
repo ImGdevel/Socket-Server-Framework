@@ -3,19 +3,19 @@
 
 #include "../handler/HandlerTypes.h"
 #include "../messages/parser/IParser.h"
-#include "EventRegistry.h"
 #include <unordered_map>
 #include <utility>
 #include <memory>
 
 class MessageDispatcher {
 public:
-    MessageDispatcher(std::unique_ptr<IParser> parser, std::unique_ptr<EventRegistry> registry);
+    MessageDispatcher(std::unique_ptr<IParser> parser);
 
+    void registerHandler(const std::string& type, HandlerFunc handler);
     void handleEvent(const std::shared_ptr<ClientSession>& session, const std::string& message);
 
 private:
-    std::unique_ptr<EventRegistry> eventRegistry;
+    std::unordered_map<std::string, HandlerFunc> handlers;
     std::unique_ptr<IParser> parser;
 };
 
