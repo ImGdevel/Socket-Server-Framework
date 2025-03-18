@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
-#include "../src/server/reactor/Worker.h"
-#include "../src/server/threadpool/WorkerQueue.h"
+#include "Worker.h"
+#include "WorkerQueue.h"
 #include <atomic>
 #include <memory>
 #include <thread>
