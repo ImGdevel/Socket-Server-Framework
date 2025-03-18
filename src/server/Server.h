@@ -4,6 +4,8 @@
 #include <memory>
 #include "reactor/Reactor.h"
 #include "threadpool/ThreadPool.h"
+#include "dispatcher/EventRegistry.h"
+#include "dispatcher/MessageDispatcher.h"
 
 class Server {
 public:
@@ -30,6 +32,7 @@ private:
     int port;
     int workerCount;
 
+    std::unique_ptr<EventRegistry> eventRegistry;
     std::unique_ptr<Reactor> reactor; 
     std::unique_ptr<ThreadPool> threadPool;
     std::unique_ptr<MessageDispatcher> messageDispatcher;
