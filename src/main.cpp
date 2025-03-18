@@ -5,6 +5,8 @@
 #include <csignal>
 #include <memory>
 
+#include "server/handler/TestJSONEventHandler.h"
+
 using namespace std;
 
 static Server* serverInstance; 
@@ -23,9 +25,13 @@ int main() {
     signal(SIGINT, signalHandler);
     signal(SIGTERM, signalHandler); 
     
+    TestJSONEventHandler handler;
+
     auto server = Server::Builder()
         .setPort(ServerConfig::getPort())
         .setWorkerCount(ServerConfig::getWorkerCount())
+        .setEventHandler(handler)
+        .setMessageType("json")
         .build();
     
     serverInstance = server.get(); 

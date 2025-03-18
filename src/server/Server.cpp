@@ -1,43 +1,70 @@
 #include "Server.h"
 #include "Logger.h"
 #include <memory>
+#include <stdexcept>
 #include "handler/IEventHandler.h"
-
 #include "handler/TestJSONEventHandler.h"
 #include "messages/parser/JsonParser.h"
 #include "dispatcher/EventRegistry.h"
 
 using namespace std;
 
-// Builder 구현
+void Server::Builder::validate() const {
+    if (port <= 0) {
+        Logger::error("Port must be greater than 0");
+        throw invalid_argument("Port must be greater than 0");
+    }
+    if (workerCount <= 0) {
+        Logger::error("Worker count must be greater than 0");
+        throw invalid_argument("Worker count must be greater than 0");
+    }
+    if (messageDispatcherType.empty()) {
+        Logger::error("Message dispatcher type must be set");
+        throw invalid_argument("Message dispatcher type must be set");
+    }
+    if (!eventHandler) {
+        Logger::error("Event handler must be set");
+        throw invalid_argument("Event handler must be set");
+    }
+}
+
 Server::Builder& Server::Builder::setPort(int p) {
+    if (p <= 0) {
+        Logger::error("Port must be greater than 0");
+        throw invalid_argument("Port must be greater than 0");
+    }
     port = p;
     return *this;
 }
 
 Server::Builder& Server::Builder::setWorkerCount(int count) {
+    if (count <= 0) {
+        Logger::error("Worker count must be greater than 0");
+        throw invalid_argument("Worker count must be greater than 0");
+    }
     workerCount = count;
     return *this;
 }
 
 Server::Builder& Server::Builder::setMessageType(const string& type) {
+    if (type.empty()) {
+        Logger::error("Message type cannot be empty");
+        throw invalid_argument("Message type cannot be empty");
+    }
     messageDispatcherType = type;
     return *this;
 }
 
 Server::Builder& Server::Builder::setEventHandler(IEventHandler& handler) {
     eventHandler = &handler;
+    eventRegistry->registerHandlers(*eventHandler);
     return *this;
 }
 
 unique_ptr<Server> Server::Builder::build() {
+    validate();
+
     auto tp = make_unique<ThreadPool>(workerCount);
-    
-    auto eventRegistry = make_unique<EventRegistry>();
-
-    TestJSONEventHandler handler;
-    eventRegistry->registerHandlers(handler);
-
     auto md = make_unique<MessageDispatcher>(move(eventRegistry));
 
     return unique_ptr<Server>(new Server(port, workerCount, move(tp), move(md)));
@@ -52,7 +79,7 @@ Server::Server(int port, int workerCount, unique_ptr<ThreadPool> tp, unique_ptr<
 // Server 초기화
 void Server::initialize() {
     reactor = make_unique<Reactor>(port, *threadPool, *messageDispatcher);
-    Logger::debug("Server instance created");
+    Logger::debug("Server instance created with port");
 }
 
 Server::~Server() {
@@ -61,19 +88,19 @@ Server::~Server() {
 
 // Server 실행
 void Server::run() {
-    Logger::info("Server is starting on port " + to_string(port) + " with " + to_string(workerCount) + " workers.");
+    Logger::info("Server is starting on port " + to_string(port) + " with " + to_string(workerCount) + " workers");
     reactor->start();
 }
 
 // Server 종료
 void Server::terminate() {
-    if (reactor != nullptr) {
+    if (reactor) {
         reactor->stop();
-        reactor = nullptr;
+        reactor.reset();
     }
-    if (threadPool != nullptr) {
+    if (threadPool) {
         threadPool->stop();
-        threadPool = nullptr;
+        threadPool.reset();
     }
-    Logger::info("Server shutdown.");
+    Logger::info("Server shutdown completed");
 }
