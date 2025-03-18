@@ -12,7 +12,10 @@ EXTERNAL_DIR = external
 ### Google Test 설정
 GTEST_DIR = $(EXTERNAL_DIR)/googletest
 GTEST_BUILD_DIR = $(GTEST_DIR)/build
-GTEST_LIBS = $(GTEST_BUILD_DIR)/lib/libgtest.a $(GTEST_BUILD_DIR)/lib/libgtest_main.a
+GTEST_LIBS = $(GTEST_BUILD_DIR)/lib/libgtest.a \
+             $(GTEST_BUILD_DIR)/lib/libgtest_main.a \
+             $(GTEST_BUILD_DIR)/lib/libgmock.a \
+             $(GTEST_BUILD_DIR)/lib/libgmock_main.a
 GTEST_INCLUDE = $(GTEST_DIR)/googletest/include $(GTEST_DIR)/googlemock/include
 
 ### RapidJSON 설정
@@ -58,6 +61,7 @@ SRC = $(SRC_DIR)/main.cpp \
 
 # 테스트 파일
 TEST_SRC = 	$(TEST_DIR)/main_test.cpp \
+			$(UNIT_TEST_DIR)/ServerTest.cpp \
 			$(UNIT_TEST_DIR)/WorkerQueueTest.cpp \
 			$(UNIT_TEST_DIR)/WorkerTest.cpp \
 			$(UNIT_TEST_DIR)/ClientSessionTest.cpp \
@@ -166,7 +170,7 @@ $(TARGET): $(OBJ)
 
 # 테스트 실행 파일 빌드
 $(TEST_EXEC): $(TEST_OBJ) $(OBJ) $(GTEST_LIBS)
-	$(CXX) $(TEST_OBJ) $(filter-out build/obj/main.o, $(OBJ)) $(GTEST_LIBS) -o $(TEST_EXEC) -pthread
+	$(CXX) $(TEST_OBJ) $(filter-out build/obj/main.o, $(OBJ)) -pthread $(GTEST_LIBS) -o $(TEST_EXEC)
 
 # 오브젝트 파일 생성 규칙
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
