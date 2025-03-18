@@ -2,6 +2,7 @@
 #define REACTOR_H
 
 #include "MessageDispatcher.h"
+#include "FilterChain.h"
 #include "IParser.h"
 #include <vector>
 #include <functional>
@@ -14,7 +15,7 @@ class MessageDispatcher;
 
 class Reactor {
 public:
-    explicit Reactor(int port, ThreadPool& threadPool, MessageDispatcher& messageDispatcher); 
+    explicit Reactor(int port, ThreadPool& threadPool, MessageDispatcher& messageDispatcher, FilterChain& filterChain); 
     ~Reactor();
 
     void start();
@@ -44,6 +45,7 @@ private:
     ThreadPool& threadPool;
     MessageDispatcher& messageDispatcher;
     std::unique_ptr<IParser> parser;
+    FilterChain& filterChain;
 };
 
 #endif

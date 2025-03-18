@@ -17,8 +17,8 @@
 
 using namespace std;
 
-Reactor::Reactor(int port, ThreadPool& threadPool, MessageDispatcher& messageDispatcher)
-        : port(port), serverSocket(-1), epollFd(-1), running(false), threadPool(threadPool), messageDispatcher(messageDispatcher) {
+Reactor::Reactor(int port, ThreadPool& threadPool, MessageDispatcher& messageDispatcher, FilterChain& filterChain)
+        : port(port), serverSocket(-1), epollFd(-1), running(false), threadPool(threadPool), messageDispatcher(messageDispatcher), filterChain(filterChain) {
     setupServerSocket();
     setupIOMultiplexing();
 
@@ -36,6 +36,7 @@ Reactor::~Reactor() {
     Logger::debug("Reactor stopped.");
 }
 
+// Server Socket 설정
 void Reactor::setupServerSocket() {
     serverSocket = socket(AF_INET, SOCK_STREAM, 0);
     if (serverSocket < 0) {
@@ -66,6 +67,7 @@ void Reactor::setupServerSocket() {
     setNonBlocking(serverSocket);
 }
 
+// I/O Multiplexing 설정
 void Reactor::setupIOMultiplexing() {
     epollFd = epoll_create1(0);
     if (epollFd < 0) {
@@ -81,7 +83,7 @@ void Reactor::setupIOMultiplexing() {
     }
 }
 
-
+// Reactor 실행
 void Reactor::start() {
     Logger::info("Reactor started, waiting for connections...");
     running = true;
@@ -111,6 +113,7 @@ void Reactor::stop() {
     running = false;
 }
 
+// 클라이언트 연결 및 세션 생성
 void Reactor::acceptConnection() {
     while (true) {
         sockaddr_in clientAddr{};
@@ -140,6 +143,7 @@ void Reactor::acceptConnection() {
     }
 }
 
+// 클라이언트 요청 처리
 void Reactor::handleClientEvent(int clientSocket) {
     char buffer[BUFFER_SIZE];
 
@@ -181,19 +185,23 @@ void Reactor::handleClientEvent(int clientSocket) {
                     Logger::error("Failed to parse message: " + message);
                     return;
                 }
-                ClientRequest ClientRequest(session, std::move(parsedMessage));
+                ClientRequest request(session, std::move(parsedMessage));
 
-                messageDispatcher.handleEvent(ClientRequest);
+                messageDispatcher.handleEvent(request);
+                filterChain.doFilter(request);
+
                 session->setProcessing(false);
             });
         }
     }
 }
 
+// 클라이언트 세션 추가
 void Reactor::addClientSession(int clientSocket) {
     clientSessions[clientSocket] = std::make_shared<ClientSession>(clientSocket);
 }
 
+// 클라이언트 세션 제거
 void Reactor::removeClientSession(int clientSocket) {
     if (epoll_ctl(epollFd, EPOLL_CTL_DEL, clientSocket, nullptr) < 0) {
         Logger::warning("Failed to remove client socket from epoll: " + to_string(clientSocket));
@@ -208,6 +216,7 @@ void Reactor::removeClientSession(int clientSocket) {
     safeClose(clientSocket);
 }
 
+// 해당 소캣을 Non-Blocking으로 전환
 void Reactor::setNonBlocking(int socket) {
     int flags = fcntl(socket, F_GETFL, 0);
     if (flags < 0) {
@@ -219,6 +228,7 @@ void Reactor::setNonBlocking(int socket) {
     }
 }
 
+// socket 안전하게 죵료 
 void Reactor::safeClose(int socket) {
     if (socket >= 0) {
         close(socket);
