@@ -1,7 +1,7 @@
 
 English | [한국어](docs/README_kr.md)
 
-## Socket Server Framework
+## Introduce
 
 This project started as an improvement of the existing [prototype server](https://github.com/ImGdevel/MJU-backend2024/tree/main/chat_server) with the goal of building a high-performance network server. The project applies an **epoll-based asynchronous I/O + thread pool architecture** to achieve high concurrency performance.
 
