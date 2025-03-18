@@ -12,7 +12,10 @@ EXTERNAL_DIR = external
 ### Google Test 설정
 GTEST_DIR = $(EXTERNAL_DIR)/googletest
 GTEST_BUILD_DIR = $(GTEST_DIR)/build
-GTEST_LIBS = $(GTEST_BUILD_DIR)/lib/libgtest.a $(GTEST_BUILD_DIR)/lib/libgtest_main.a
+GTEST_LIBS = $(GTEST_BUILD_DIR)/lib/libgtest.a \
+             $(GTEST_BUILD_DIR)/lib/libgtest_main.a \
+             $(GTEST_BUILD_DIR)/lib/libgmock.a \
+             $(GTEST_BUILD_DIR)/lib/libgmock_main.a
 GTEST_INCLUDE = $(GTEST_DIR)/googletest/include $(GTEST_DIR)/googlemock/include
 
 ### RapidJSON 설정
@@ -45,13 +48,12 @@ Message_DIR = src/server/messages
 # 소스 파일
 SRC = $(SRC_DIR)/main.cpp \
       $(APP_DIR)/Server.cpp \
+	  $(APP_DIR)/ServerConfig.cpp \
       $(APP_DIR)/reactor/Reactor.cpp \
       $(APP_DIR)/reactor/Worker.cpp \
       $(APP_DIR)/session/ClientSession.cpp \
       $(APP_DIR)/threadpool/ThreadPool.cpp \
       $(APP_DIR)/dispatcher/MessageDispatcher.cpp \
-      $(APP_DIR)/dispatcher/HandlerConfigurator.cpp \
-	  $(APP_DIR)/dispatcher/MessageDispatcherFactory.cpp \
       $(APP_DIR)/handler/TestEventHandler.cpp \
 	  $(APP_DIR)/handler/TestJSONEventHandler.cpp \
       $(APP_DIR)/chat/ChatRoom.cpp \
@@ -59,10 +61,11 @@ SRC = $(SRC_DIR)/main.cpp \
 
 # 테스트 파일
 TEST_SRC = 	$(TEST_DIR)/main_test.cpp \
+			$(UNIT_TEST_DIR)/ServerTest.cpp \
 			$(UNIT_TEST_DIR)/WorkerQueueTest.cpp \
 			$(UNIT_TEST_DIR)/WorkerTest.cpp \
 			$(UNIT_TEST_DIR)/ClientSessionTest.cpp \
-			$(INTEGRATION_TEST_DIR)/server_test.cpp \
+
 
 
 # 오브젝트 파일 경로
@@ -72,7 +75,7 @@ TEST_OBJ = $(TEST_SRC:$(TEST_DIR)/%.cpp=$(OBJ_DIR)/%.o)
 
 # 인클루드 경로
 INCLUDE_DIRS = $(SRC_DIR) $(GTEST_INCLUDE) $(RAPIDJSON_INCLUDE) $(NLOHMANN_JSON_DIR)/include \
-               $(HIREDIS_INCLUDE) $(MYSQL_INCLUDE) $(UTILS_DIR) $(Message_DIR)
+               $(HIREDIS_INCLUDE) $(MYSQL_INCLUDE) $(UTILS_DIR) $(Message_DIR) $(shell find $(APP_DIR) -type d)
 INCLUDES = $(addprefix -I, $(INCLUDE_DIRS))
 
 # 기본 타겟: 서버 빌드 
@@ -168,7 +171,7 @@ $(TARGET): $(OBJ)
 
 # 테스트 실행 파일 빌드
 $(TEST_EXEC): $(TEST_OBJ) $(OBJ) $(GTEST_LIBS)
-	$(CXX) $(TEST_OBJ) $(filter-out build/obj/main.o, $(OBJ)) $(GTEST_LIBS) -o $(TEST_EXEC) -pthread
+	$(CXX) $(TEST_OBJ) $(filter-out build/obj/main.o, $(OBJ)) -pthread $(GTEST_LIBS) -o $(TEST_EXEC)
 
 # 오브젝트 파일 생성 규칙
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp

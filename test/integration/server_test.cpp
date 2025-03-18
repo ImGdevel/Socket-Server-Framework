@@ -5,8 +5,8 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <cstring>
-#include "../../src/server/Server.h"
-#include "../../src/server/reactor/Reactor.h"
+#include "Server.h"
+#include "Reactor.h"
 #include <iostream>
 
 #define SERVER_PORT 8080
