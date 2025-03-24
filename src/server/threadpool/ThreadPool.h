@@ -17,6 +17,7 @@ public:
     void stop();
 
 private:
+    bool running;
     std::shared_ptr<WorkerQueue<std::function<void()>>> taskQueue;
     std::vector<std::unique_ptr<Worker>> workers;
 };
