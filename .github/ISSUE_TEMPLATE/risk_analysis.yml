@@ -1,4 +1,4 @@
-name: "⚠️ 잠재적 위험 분석"
+name: "잠재적 위험 분석 (risk analysis)"
 description: "현재 프로젝트에서 발생할 가능성이 있는 위험 요소를 분석합니다."
 title: "[Risk] "
 labels: ["risk", "discussion"]
