@@ -5,6 +5,7 @@
 #include "IEventHandler.h"
 #include "EventRegistry.h"
 #include "DefaultFilter.h"
+#include "DefaultFilterX.h"
 
 using namespace std;
 
@@ -70,6 +71,7 @@ unique_ptr<Server> Server::Builder::build() {
     if (filterChain->isEmpty()) {
         Logger::warning("No filters added, using default filter chain");
         filterChain->addFilter(make_unique<DefaultFilter>());
+        filterChain->addFilter(make_unique<DefaultFilterX>());
     }
 
     auto dispatcher = make_unique<MessageDispatcher>(move(eventRegistry));
