@@ -31,7 +31,7 @@ int main() {
         .setPort(ServerConfig::getPort())
         .setWorkerCount(ServerConfig::getWorkerCount())
         .setEventHandler(handler)
-        .setMessageType("json")
+        .setMessageType("json-rapid")
         .build();
     
     serverInstance = server.get(); 
