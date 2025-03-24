@@ -1,0 +1,82 @@
+name: "기능 요청 (Feature Request)"
+description: "새로운 기능 개발 또는 작업할 내용을 정리합니다."
+title: "[Feature] <요청 기능 제목>"
+labels: ["feature request", "enhancement"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 🚀 기능 요청
+        이슈에 대한 간단한 설명을 작성하세요.
+
+  - type: input
+    id: summary
+    attributes:
+      label: "🔹 기능 요약"
+      description: "추가하려는 기능을 설명하세요."
+      placeholder: "예: 검색 결과에서 필터 기능 추가"
+    validations:
+      required: true
+
+  - type: textarea
+    id: details
+    attributes:
+      label: "📌 상세 설명"
+      description: "이 작업의 목적과 필요한 사항을 설명하세요."
+      placeholder: "예: 회원가입 페이지 UI 개선 및 반응형 적용"
+    validations:
+      required: true
+
+  - type: textarea
+    id: checklist
+    attributes:
+      label: "✅ 작업 목록 (체크리스트)"
+      description: "작업 단위를 나눠서 진행하세요."
+      placeholder: |
+        - [ ] API 엔드포인트 구현
+        - [ ] 프론트엔드 UI 개발
+        - [ ] 테스트 코드 작성
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: "💡 제안하는 해결 방법"
+      description: "어떤 방식으로 기능을 추가하면 좋을지 설명해주세요."
+      placeholder: "검색 페이지에 카테고리 및 정렬 옵션을 추가하여 필터링 기능을 제공합니다."
+    validations:
+      required: false
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: "🚀 우선순위"
+      description: "이 작업의 우선순위를 선택하세요."
+      options:
+        - "🟥 긴급 (Urgent)"
+        - "🟧 높음 (High)"
+        - "🟨 보통 (Medium)"
+        - "🟩 낮음 (Low)"
+    validations:
+      required: true
+
+  - type: input
+    id: due-date
+    attributes:
+      label: "📅 마감 기한"
+      description: "이 작업의 목표 마감일을 입력하세요. (예: 2025-03-10)"
+      placeholder: "YYYY-MM-DD"
+    validations:
+      required: false
+
+  - type: textarea
+    id: reference
+    attributes:
+      label: "🔗 관련 문서 또는 참고 자료"
+      description: "이 작업과 관련된 문서, 이슈 또는 PR 링크를 추가하세요."
+      placeholder: "예: #123 (이전에 논의된 관련 이슈)"
+    validations:
+      required: false
