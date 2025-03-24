@@ -17,12 +17,10 @@
 
 using namespace std;
 
-Reactor::Reactor(int port, ThreadPool& threadPool, MessageDispatcher& messageDispatcher, FilterChain& filterChain)
-        : port(port), serverSocket(-1), epollFd(-1), running(false), threadPool(threadPool), messageDispatcher(messageDispatcher), filterChain(filterChain) {
+Reactor::Reactor(int port, ThreadPool& threadPool, MessageProcessor& messageProcessor)
+        : port(port), serverSocket(-1), epollFd(-1), running(false), threadPool(threadPool), messageProcessor(messageProcessor) {
     setupServerSocket();
     setupIOMultiplexing();
-
-    parser = make_unique<JSONParserRapid>();
 }
 
 Reactor::~Reactor() {
@@ -179,17 +177,7 @@ void Reactor::handleClientEvent(int clientSocket) {
         if (session->extractMessage(message)) {
             session->setProcessing(true);
             threadPool.enqueueTask([this, session, message]() {
-                // todo : 추후 제거할 것, 임시로 해당 위치에서 메시지를 분리한다.
-                auto parsedMessage = parser->parse(message);
-                if (!parsedMessage) {
-                    Logger::error("Failed to parse message: " + message);
-                    return;
-                }
-                ClientRequest request(session, std::move(parsedMessage));
-
-                messageDispatcher.handleEvent(request);
-                filterChain.doFilter(request);
-
+                messageProcessor.processMessage(session, message);
                 session->setProcessing(false);
             });
         }
