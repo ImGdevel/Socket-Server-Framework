@@ -1,7 +1,12 @@
 #include "FilterChain.h"
+#include "FilterException.h"
+#include "Logger.h"
+#include <typeinfo>
 
-void FilterChain::addFilter(std::unique_ptr<IFilter> filter) {
-    filters.push_back(std::move(filter));
+using namespace std;
+
+void FilterChain::addFilter(unique_ptr<IFilter> filter) {
+    filters.push_back(move(filter));
 }
 
 void FilterChain::doFilter(const ClientRequest& request) {
@@ -13,7 +18,16 @@ void FilterChain::doFilter(const ClientRequest& request) {
 void FilterChain::executeFilter(const ClientRequest& request, size_t index) {
     if (index < filters.size()) {
         IFilter* nextFilter = (index + 1 < filters.size()) ? filters[index + 1].get() : nullptr;
-        filters[index]->doFilter(request, nextFilter);
+
+        try {
+            filters[index]->doFilter(request, nextFilter);
+        } catch (const exception& e) {
+            string filterName = typeid(*filters[index]).name();
+            string errorMsg = "Filter [" + filterName + "] failed: " + e.what();
+            
+            Logger::error(errorMsg);
+            throw FilterException(filterName, e.what());
+        }
     }
 }
 
