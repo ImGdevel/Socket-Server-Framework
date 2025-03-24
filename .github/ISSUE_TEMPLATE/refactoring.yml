@@ -1,0 +1,42 @@
+name: "리팩토링 요청 (Refactoring Request)"
+description: "코드 개선이 필요한 경우 요청하는 템플릿입니다."
+title: "[Refactor] 리팩토링 제목 입력"
+labels: ["refactor", "enhancement"]
+assignees:
+  - dev-team
+body:
+  - type: markdown
+    attributes:
+      value: "## 🛠 코드 리팩토링 요청"
+
+  - type: textarea
+    id: refactor-description
+    attributes:
+      label: "📌 리팩토링 개요"
+      description: "어떤 코드가 개선되어야 하는지 설명하세요."
+      placeholder: "예: 서비스 레이어에서 중복된 로직 제거 필요"
+    validations:
+      required: true
+
+  - type: textarea
+    id: reason
+    attributes:
+      label: "🎯 리팩토링 필요 이유"
+      description: "왜 코드 개선이 필요한지 설명하세요."
+      placeholder: "예: 유지보수를 쉽게 하기 위해 코드 중복을 제거해야 함."
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-improvement
+    attributes:
+      label: "✅ 기대 효과"
+      description: "리팩토링 후 개선될 점을 설명하세요."
+      placeholder: "예: 코드의 가독성이 높아지고 유지보수가 쉬워짐."
+
+  - type: textarea
+    id: additional-info
+    attributes:
+      label: "📌 추가 정보"
+      description: "참고할 자료가 있으면 추가하세요."
+      placeholder: "예: 관련 코드 링크"
