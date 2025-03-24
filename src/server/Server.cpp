@@ -6,6 +6,7 @@
 #include "EventRegistry.h"
 #include "DefaultFilter.h"
 #include "DefaultFilterX.h"
+#include "ReactorFactory.h"
 
 using namespace std;
 
@@ -88,7 +89,7 @@ Server::Server(int port, int workerCount, unique_ptr<ThreadPool> tp, unique_ptr<
 
 // Server 초기화
 void Server::initialize() {
-    reactor = make_unique<Reactor>(port, *threadPool, *messageProcessor);
+    reactor = ReactorFactory::createReactor("tcp", port, *threadPool, *messageProcessor);
     Logger::debug("Server instance created with port " + to_string(port));
 }
 
