@@ -67,6 +67,7 @@ TEST_SRC = 	$(TEST_DIR)/main_test.cpp \
 			$(UNIT_TEST_DIR)/WorkerQueueTest.cpp \
 			$(UNIT_TEST_DIR)/WorkerTest.cpp \
 			$(UNIT_TEST_DIR)/ClientSessionTest.cpp \
+			$(UNIT_TEST_DIR)/FilterChainTest.cpp \
 
 
 
