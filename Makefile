@@ -49,7 +49,7 @@ Message_DIR = src/server/messages
 SRC = $(SRC_DIR)/main.cpp \
       $(APP_DIR)/Server.cpp \
 	  $(APP_DIR)/ServerConfig.cpp \
-      $(APP_DIR)/reactor/Reactor.cpp \
+      $(APP_DIR)/reactor/ReactorTCP.cpp \
       $(APP_DIR)/reactor/Worker.cpp \
       $(APP_DIR)/session/ClientSession.cpp \
       $(APP_DIR)/threadpool/ThreadPool.cpp \
