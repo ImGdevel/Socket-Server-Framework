@@ -1,39 +1,82 @@
-name: "🚀 기능 요청"
-description: "새로운 기능을 제안합니다."
-title: "[Feature] "
-labels: ["enhancement"]
+name: "기능 요청 (Feature Request)"
+description: "새로운 기능 개발 또는 작업할 내용을 정리합니다."
+title: "[Feature] <요청 기능 제목>"
+labels: ["feature request", "enhancement"]
 assignees: []
 
 body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 🚀 기능 요청
+        이슈에 대한 간단한 설명을 작성하세요.
 
   - type: input
     id: summary
     attributes:
       label: "🔹 기능 요약"
-      description: "요청하려는 기능을 간략히 설명하세요."
-      placeholder: "예: 사용자가 프로필 이미지를 업로드할 수 있도록 지원"
+      description: "추가하려는 기능을 설명하세요."
+      placeholder: "예: 검색 결과에서 필터 기능 추가"
+    validations:
+      required: true
 
   - type: textarea
     id: details
     attributes:
-      label: "💡 상세 설명"
-      description: "어떤 문제를 해결하려는지 또는 기능의 기대 동작을 설명하세요."
-      placeholder: "이 기능이 필요한 이유와 어떻게 동작하면 좋을지 상세히 작성해주세요."
+      label: "📌 상세 설명"
+      description: "이 작업의 목적과 필요한 사항을 설명하세요."
+      placeholder: "예: 회원가입 페이지 UI 개선 및 반응형 적용"
+    validations:
+      required: true
 
   - type: textarea
-    id: alternatives
-    attributes:
-      label: "🔄 대안 방법"
-      description: "현재 다른 해결 방법이 있다면 설명해주세요."
-      placeholder: "예: 현재는 프로필 이미지를 URL로 입력하도록 함"
-
-  - type: checkboxes
     id: checklist
     attributes:
-      label: "✅ 체크리스트"
-      description: "요청 사항을 제출하기 전에 아래 사항을 확인해주세요."
-      options:
-        - label: "이 기능이 기존 기능과 중복되지 않는지 확인했습니다."
-        - label: "가능하면 스크린샷이나 예제 코드도 포함했습니다."
+      label: "✅ 작업 목록 (체크리스트)"
+      description: "작업 단위를 나눠서 진행하세요."
+      placeholder: |
+        - [ ] API 엔드포인트 구현
+        - [ ] 프론트엔드 UI 개발
+        - [ ] 테스트 코드 작성
+    validations:
+      required: true
 
----
+  - type: textarea
+    id: solution
+    attributes:
+      label: "💡 제안하는 해결 방법"
+      description: "어떤 방식으로 기능을 추가하면 좋을지 설명해주세요."
+      placeholder: "검색 페이지에 카테고리 및 정렬 옵션을 추가하여 필터링 기능을 제공합니다."
+    validations:
+      required: false
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: "🚀 우선순위"
+      description: "이 작업의 우선순위를 선택하세요."
+      options:
+        - "🟥 긴급 (Urgent)"
+        - "🟧 높음 (High)"
+        - "🟨 보통 (Medium)"
+        - "🟩 낮음 (Low)"
+    validations:
+      required: true
+
+  - type: input
+    id: due-date
+    attributes:
+      label: "📅 마감 기한"
+      description: "이 작업의 목표 마감일을 입력하세요. (예: 2025-03-10)"
+      placeholder: "YYYY-MM-DD"
+    validations:
+      required: false
+
+  - type: textarea
+    id: reference
+    attributes:
+      label: "🔗 관련 문서 또는 참고 자료"
+      description: "이 작업과 관련된 문서, 이슈 또는 PR 링크를 추가하세요."
+      placeholder: "예: #123 (이전에 논의된 관련 이슈)"
+    validations:
+      required: false
