@@ -1,59 +1,99 @@
-name: "🐞 버그 신고"
-description: "발견한 버그를 보고합니다."
-title: "[Bug] "
-labels: ["bug"]
-assignees: []
+name: "버그 신고 (Bug Report)"
+description: "발생한 버그를 신고하고 해결을 요청하세요."
+title: "[Bug] <버그 제목>"
+labels: ["bug", "triage"]
+assignees: []  # 필요 시 담당자를 지정하세요.
 
 body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 🐞 버그 신고
+        발생한 문제를 상세히 설명해주세요.
 
   - type: input
     id: summary
     attributes:
-      label: "🔍 버그 요약"
-      description: "버그를 간략히 설명해주세요."
-      placeholder: "예: 로그인 버튼이 동작하지 않음"
+      label: "🔹 버그 요약"
+      description: "버그를 간략하게 요약하세요."
+      placeholder: "예: 로그인 시 '잘못된 요청' 오류 발생"
+    validations:
+      required: true
 
   - type: textarea
-    id: steps
+    id: description
     attributes:
-      label: "⚡ 재현 방법"
-      description: "버그를 재현할 수 있도록 단계를 작성해주세요."
+      label: "📌 상세 설명"
+      description: "버그가 발생한 상황과 예상 동작을 설명해주세요."
       placeholder: |
-        1. 로그인 페이지로 이동
-        2. 이메일과 비밀번호 입력 후 로그인 버튼 클릭
-        3. 아무런 반응이 없음
+        예: 
+        - 로그인 시 이메일과 비밀번호를 입력하면 '잘못된 요청' 오류가 발생함.
+        - 정상적으로 로그인 페이지로 이동해야 하지만, 요청이 차단됨.
+    validations:
+      required: true
 
   - type: textarea
-    id: expected_behavior
+    id: reproduction
     attributes:
-      label: "✔ 예상 동작"
-      description: "정상적으로 동작했을 때의 기대 결과를 작성해주세요."
-      placeholder: "로그인 버튼을 클릭하면 사용자가 대시보드로 이동해야 합니다."
+      label: "🛠️ 재현 방법"
+      description: "버그를 재현하는 방법을 단계별로 작성해주세요."
+      placeholder: |
+        1. 홈페이지로 이동합니다.
+        2. 로그인 버튼을 클릭합니다.
+        3. 이메일과 비밀번호를 입력하고 로그인 시도합니다.
+        4. '잘못된 요청' 오류가 발생합니다.
+    validations:
+      required: true
 
   - type: textarea
-    id: actual_behavior
+    id: expected-behavior
     attributes:
-      label: "❌ 실제 동작"
-      description: "버그 발생 시 실제 동작을 설명해주세요."
-      placeholder: "버튼을 눌러도 화면이 바뀌지 않음."
+      label: "✅ 예상 동작"
+      description: "버그가 수정되었을 때 기대되는 동작을 설명해주세요."
+      placeholder: "정상적으로 로그인되어 대시보드로 이동해야 합니다."
+    validations:
+      required: true
 
-  - type: textarea
+  - type: dropdown
+    id: severity
+    attributes:
+      label: "🚨 심각도"
+      description: "이 버그의 영향을 선택하세요."
+      options:
+        - "🟥 치명적 (Critical) - 시스템 전체가 영향을 받음"
+        - "🟧 높음 (High) - 주요 기능이 동작하지 않음"
+        - "🟨 보통 (Medium) - 일부 기능이 비정상적임"
+        - "🟩 낮음 (Low) - 경미한 문제이지만 개선 필요"
+    validations:
+      required: true
+
+  - type: input
     id: environment
     attributes:
-      label: "🛠 환경 정보"
-      description: "어떤 환경에서 발생하는 문제인지 작성해주세요."
-      placeholder: |
-        - OS: Windows 11
-        - 브라우저: Chrome 120.0
-        - 프레임워크: Spring Boot 3.2.0
+      label: "💻 환경 정보"
+      description: "버그 발생 환경을 입력하세요. (OS, 브라우저, 기기 등)"
+      placeholder: "예: Windows 11, Chrome 120.0, Galaxy S22"
+    validations:
+      required: true
 
-  - type: checkboxes
-    id: checklist
+  - type: textarea
+    id: logs
     attributes:
-      label: "✅ 체크리스트"
-      description: "버그 신고 전 아래 항목을 확인해주세요."
-      options:
-        - label: "같은 문제가 이미 보고되었는지 확인했습니다."
-        - label: "재현 가능한 최소한의 예제를 제공합니다."
+      label: "📜 오류 로그 (선택)"
+      description: "콘솔 로그 또는 서버 오류 메시지를 첨부하세요."
+      placeholder: |
+        예:
+        ```
+        Uncaught TypeError: Cannot read properties of undefined (reading 'login')
+        ```
+    validations:
+      required: false
 
----
+  - type: textarea
+    id: additional-info
+    attributes:
+      label: "📎 추가 정보 (선택)"
+      description: "스크린샷, 관련 이슈, 참고할 내용을 추가하세요."
+      placeholder: "예: 관련 GitHub 이슈 링크, 스크린샷 등"
+    validations:
+      required: false
