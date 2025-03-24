@@ -7,6 +7,8 @@
 #include "EventRegistry.h"
 #include "IFilter.h"
 #include "FilterChain.h"
+#include "ParserFactory.h"
+#include "MessageProcessor.h"
 #include <memory>
 #include <string>
 
@@ -41,15 +43,14 @@ public:
 private:
     friend class Builder;
 
-    Server(int port, int workerCount, std::unique_ptr<ThreadPool> tp, std::unique_ptr<MessageDispatcher> md, std::unique_ptr<FilterChain> fc);
+    Server(int port, int workerCount, std::unique_ptr<ThreadPool> tp, std::unique_ptr<MessageProcessor> mp);
 
     const int port;
     const int workerCount;
 
     std::unique_ptr<Reactor> reactor; 
     std::unique_ptr<ThreadPool> threadPool;
-    std::unique_ptr<MessageDispatcher> messageDispatcher;
-    std::unique_ptr<FilterChain> filterChain;
+    std::unique_ptr<MessageProcessor> messageProcessor;
 
     void initialize();
 };
