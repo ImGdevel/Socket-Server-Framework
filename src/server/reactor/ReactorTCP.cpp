@@ -1,5 +1,6 @@
 #include "ReactorTCP.h"
 #include "ClientSession.h"
+#include "ClientSessionTCP.h"
 #include "ThreadPool.h"
 #include "Logger.h"
 #include <iostream>
@@ -122,7 +123,7 @@ void ReactorTCP::acceptConnection() {
         Logger::info("New client connected: " + to_string(clientSocket));
         setNonBlocking(clientSocket);
 
-        sessionManager.addSession(clientSocket, ClientSession::createTCP(clientSocket));
+        sessionManager.addSession(clientSocket, make_shared<ClientSessionTCP>(clientSocket));
 
         epoll_event event{};
         event.events = EPOLLIN | EPOLLET;

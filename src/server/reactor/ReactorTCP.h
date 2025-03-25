@@ -2,7 +2,7 @@
 #define REACTOR_TCP_H
 
 #include "Reactor.h"
-#include "ClientSessionManager.h"
+#include "ClientSessionManagerTCP.h"
 #include <vector>
 #include <unordered_map>
 
@@ -33,7 +33,7 @@ private:
     void removeClientSession(int socket);
 
     std::unordered_map<int, std::shared_ptr<ClientSession>> clientSessions;
-    ClientSessionManager sessionManager;
+    ClientSessionManagerTCP sessionManager;
 };
 
 #endif
