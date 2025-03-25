@@ -12,21 +12,16 @@
 #include <stdexcept>
 #include <memory>
 
-
 using namespace std;
 
 ReactorTCP::ReactorTCP(int port, ThreadPool& threadPool, MessageProcessor& messageProcessor)
-    : Reactor(port, threadPool, messageProcessor), serverSocket(-1), epollFd(-1), running(false){
+    : Reactor(port, threadPool, messageProcessor), serverSocket(-1), epollFd(-1), running(false) {
     setupServerSocket();
     setupIOMultiplexing();
 }
 
 ReactorTCP::~ReactorTCP() {
     stop();
-    for (auto& [socket, session] : clientSessions) {
-        safeClose(socket);
-    }
-    clientSessions.clear();
     safeClose(epollFd);
     safeClose(serverSocket);
     Logger::debug("ReactorTCP stopped.");
@@ -127,14 +122,14 @@ void ReactorTCP::acceptConnection() {
         Logger::info("New client connected: " + to_string(clientSocket));
         setNonBlocking(clientSocket);
 
-        addClientSession(clientSocket);
+        sessionManager.addSession(clientSocket, ClientSession::createTCP(clientSocket));
 
         epoll_event event{};
         event.events = EPOLLIN | EPOLLET;
         event.data.fd = clientSocket;
         if (epoll_ctl(epollFd, EPOLL_CTL_ADD, clientSocket, &event) < 0) {
             Logger::error("Failed to add client socket to epoll: " + to_string(clientSocket));
-            removeClientSession(clientSocket);
+            sessionManager.removeSession(clientSocket);
         }
     }
 }
@@ -143,26 +138,24 @@ void ReactorTCP::acceptConnection() {
 void ReactorTCP::handleClientEvent(int clientSocket) {
     char buffer[BUFFER_SIZE];
 
-    auto sessionIter = clientSessions.find(clientSocket);
-    if (sessionIter == clientSessions.end()) {
+    auto session = sessionManager.getSession(clientSocket);
+    if (!session) {
         Logger::error("Invalid client socket: " + to_string(clientSocket));
-        removeClientSession(clientSocket);
         return;
     }
 
-    auto& session = sessionIter->second;
     ssize_t bytesRead = recv(clientSocket, buffer, sizeof(buffer), 0);
 
     if (bytesRead < 0) {
         if (errno == EAGAIN || errno == EWOULDBLOCK) {
             return;
         }
-        Logger::error("recv failed for socket: " + std::to_string(clientSocket));
-        removeClientSession(clientSocket);
+        Logger::error("recv failed for socket: " + to_string(clientSocket));
+        sessionManager.removeSession(clientSocket);
         return;
     } else if (bytesRead == 0) {
-        Logger::info("Client disconnected: " + std::to_string(clientSocket));
-        removeClientSession(clientSocket);
+        Logger::info("Client disconnected: " + to_string(clientSocket));
+        sessionManager.removeSession(clientSocket);
         return;
     } else {
         session->appendToBuffer(buffer, bytesRead);
@@ -182,26 +175,6 @@ void ReactorTCP::handleClientEvent(int clientSocket) {
     }
 }
 
-// 클라이언트 세션 추가
-void ReactorTCP::addClientSession(int clientSocket) {
-    clientSessions[clientSocket] = std::make_shared<ClientSession>(clientSocket);
-}
-
-// 클라이언트 세션 제거
-void ReactorTCP::removeClientSession(int clientSocket) {
-    if (epoll_ctl(epollFd, EPOLL_CTL_DEL, clientSocket, nullptr) < 0) {
-        Logger::warning("Failed to remove client socket from epoll: " + to_string(clientSocket));
-    }
-
-    auto it = clientSessions.find(clientSocket);
-    if (it != clientSessions.end()) {
-        it->second->closeSession();
-        clientSessions.erase(it);
-    }
-
-    safeClose(clientSocket);
-}
-
 // 해당 소캣을 Non-Blocking으로 전환
 void ReactorTCP::setNonBlocking(int socket) {
     int flags = fcntl(socket, F_GETFL, 0);
@@ -215,7 +188,7 @@ void ReactorTCP::setNonBlocking(int socket) {
 }
 
 // socket 안전하게 죵료 
-void ReactorTCP::safeClose(int socket) {
+void ReactorTCP::safeClose(int socket) { 
     if (socket >= 0) {
         close(socket);
     }
