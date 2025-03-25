@@ -1,36 +1,41 @@
-#ifndef CLIENT_SESSION_H
-#define CLIENT_SESSION_H
+#ifndef CLIENTSESSION_H
+#define CLIENTSESSION_H
 
-#include <string> 
-#include <vector>
+#include "IClientSession.h"
+#include "ClientSessionTCP.h"
+#include "ClientSessionUDP.h"
+#include <memory>
+#include <netinet/in.h>
 
 class ClientSession {
-public:
-    explicit ClientSession(int socket);
-    ~ClientSession();
-
-    void appendToBuffer(const char* data, size_t size);
-    bool extractMessage(std::string& message);
-    
-    void sendMessage(const std::string& message);
-
-    int getSocket() const;
-    bool isActive() const;
-    void setProcessing(bool state);
-    bool isProcessing() const;
-    void closeSession();
-    
-    void setCurrentRoom(const std::string& roomId);
-    std::string getCurrentRoom() const;
-
 private:
-    int clientSocket;
-    bool active;
-    bool processing;
+    std::unique_ptr<IClientSession> session;
 
-    std::vector<char> receiveBuffer;
+    explicit ClientSession(std::unique_ptr<IClientSession> sess) 
+        : session(std::move(sess)) {}
 
-    std::string currentRoomId;
+public:
+    // TCP 세션 생성
+    static std::shared_ptr<ClientSession> createTCP(int socket) {
+        return std::make_shared<ClientSession>(ClientSession(std::make_unique<ClientSessionTCP>(socket)));
+    }
+
+    // UDP 세션 생성
+    static std::shared_ptr<ClientSession> createUDP(sockaddr_in clientAddr) {
+        return std::make_shared<ClientSession>(ClientSession(std::make_unique<ClientSessionUDP>(clientAddr)));
+    }
+
+    void sendMessage(const std::string& message) {
+        session->sendMessage(message);
+    }
+
+    void closeSession() {
+        session->closeSession();
+    }
+
+    bool isActive() const {
+        return session->isActive();
+    }
 };
 
 #endif
