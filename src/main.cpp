@@ -31,6 +31,7 @@ int main() {
         .setPort(ServerConfig::getPort())
         .setWorkerCount(ServerConfig::getWorkerCount())
         .setEventHandler(handler)
+        .setTransportProtocol("UDP")
         .setMessageType("json-rapid")
         .build();
     
