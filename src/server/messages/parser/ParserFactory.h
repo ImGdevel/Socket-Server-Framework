@@ -12,6 +12,12 @@ class ParserFactory {
 public:
     using ParserCreator = std::function<std::unique_ptr<IParser>()>;
 
+    ParserFactory() {
+        // 기본적으로 제공
+        registerParser("json", []() { return std::make_unique<JSONParser>(); });
+        registerParser("json-rapid", []() { return std::make_unique<JSONParserRapid>(); });
+    }
+
     void registerParser(const std::string& type, ParserCreator creator) {
         parsers[type] = creator;
     }

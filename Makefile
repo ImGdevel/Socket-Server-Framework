@@ -54,10 +54,12 @@ SRC = $(SRC_DIR)/main.cpp \
       $(APP_DIR)/session/ClientSession.cpp \
       $(APP_DIR)/threadpool/ThreadPool.cpp \
       $(APP_DIR)/dispatcher/MessageDispatcher.cpp \
+	  $(APP_DIR)/message_processor/MessageProcessor.cpp \
       $(APP_DIR)/handler/TestEventHandler.cpp \
 	  $(APP_DIR)/handler/TestJSONEventHandler.cpp \
       $(APP_DIR)/chat/ChatRoom.cpp \
-      $(APP_DIR)/chat/ChatRoomManager.cpp
+      $(APP_DIR)/chat/ChatRoomManager.cpp \
+	  $(APP_DIR)/filter/FilterChain.cpp \
 
 # 테스트 파일
 TEST_SRC = 	$(TEST_DIR)/main_test.cpp \
@@ -65,6 +67,7 @@ TEST_SRC = 	$(TEST_DIR)/main_test.cpp \
 			$(UNIT_TEST_DIR)/WorkerQueueTest.cpp \
 			$(UNIT_TEST_DIR)/WorkerTest.cpp \
 			$(UNIT_TEST_DIR)/ClientSessionTest.cpp \
+			$(UNIT_TEST_DIR)/FilterChainTest.cpp \
 
 
 
