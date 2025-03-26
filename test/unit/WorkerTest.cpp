@@ -8,7 +8,7 @@
 // Worker 단위 테스트
 TEST(WorkerTest, ExecuteTask) {
     auto queue = std::make_shared<WorkerQueue<std::function<void()>>>();
-    Worker worker(0, queue);
+    Worker worker(queue);
     std::atomic<int> counter = 0;
     
     worker.start();
@@ -23,7 +23,7 @@ TEST(WorkerTest, ExecuteTask) {
 // Worker 정상 종료 테스트
 TEST(WorkerTest, StopsGracefully) {
     auto queue = std::make_shared<WorkerQueue<std::function<void()>>>();
-    Worker worker(0, queue);
+    Worker worker(queue);
     
     worker.start();
     worker.stop();

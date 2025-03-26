@@ -1,8 +1,8 @@
 #ifndef REACTOR_H
 #define REACTOR_H
 
-#include "MessageProcessor.h"
-#include "ThreadPool.h"
+#include "MessageDispatcher.h"
+#include "IParser.h"
 #include <vector>
 #include <functional>
 #include <unordered_map>
@@ -14,7 +14,7 @@ class MessageDispatcher;
 
 class Reactor {
 public:
-    explicit Reactor(int port, ThreadPool& threadPool, MessageProcessor& messageProcessor);  
+    explicit Reactor(int port, ThreadPool& threadPool, MessageDispatcher& messageDispatcher); 
     ~Reactor();
 
     void start();
@@ -42,7 +42,8 @@ private:
 
     std::unordered_map<int, std::shared_ptr<ClientSession>> clientSessions;
     ThreadPool& threadPool;
-    MessageProcessor& messageProcessor;
+    MessageDispatcher& messageDispatcher;
+    std::unique_ptr<IParser> parser;
 };
 
 #endif

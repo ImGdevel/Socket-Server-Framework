@@ -1,4 +1,3 @@
-// Worker.cpp
 #include "Worker.h"
 #include "Logger.h"
 #include <memory>
@@ -6,38 +5,35 @@
 
 using namespace std;
 
-Worker::Worker(int workerId, shared_ptr<WorkerQueue<std::function<void()>>> taskQueue)
-:workerId(workerId), taskQueue(taskQueue),  running(true) {}
+Worker::Worker(shared_ptr<WorkerQueue<std::function<void()>>> taskQueue)
+: taskQueue(taskQueue), running(true) {}
 
 Worker::~Worker(){
-    if (thread.joinable() && running.load()) {
-        stop();
-    }
+    // todo : 종료 작업
 }
 
 void Worker::start() {
     thread = std::thread([this]() {
-        while (running.load()) {
-            auto task = taskQueue->pop();
+        while (running) {
+            auto task = taskQueue->pop(); //작업 큐에서 작업 pop
             if (!task) {
-                break;
+                continue;
             }
             try {
                 task();
             } catch (const runtime_error& e) {
-                Logger::error("[" + to_string(workerId) + "Runtime Exception in task execution: " + string(e.what()));
+                Logger::error("Runtime Exception in task execution: " + string(e.what()));
             } catch (const exception& e) {
-                Logger::error("[" + to_string(workerId) + "]Exception in task execution: " + string(e.what()));
+                Logger::error("Exception in task execution: " + string(e.what()));
             }
         }
     });
 }
 
 void Worker::stop() {
-    running.store(false);
+    running = false;
     taskQueue->push(nullptr);
     if (thread.joinable()) {
         thread.join();
     }
-    Logger::debug(to_string(workerId) + " Worker Shutdown");
 }
