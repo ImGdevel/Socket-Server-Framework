@@ -4,8 +4,6 @@
 #include <stdexcept>
 #include "IEventHandler.h"
 #include "EventRegistry.h"
-#include "DefaultFilter.h"
-#include "DefaultFilterX.h"
 
 using namespace std;
 
@@ -60,36 +58,21 @@ unique_ptr<Server> Server::Builder::build() {
     validate();
 
     auto tp = make_unique<ThreadPool>(workerCount);
-    auto parserFactory = make_unique<ParserFactory>();
-    auto parser = parserFactory->createParser(messageDispatcherType);
-    if (!parser) {
-        Logger::error("Failed to create parser for type: " + messageDispatcherType);
-        throw invalid_argument("Invalid message dispatcher type");
-    }
+    auto md = make_unique<MessageDispatcher>(move(eventRegistry));
 
-    // todo : 테스트 용 기본 필터 예시 (추후 제거할 것)
-    if (filterChain->isEmpty()) {
-        Logger::warning("No filters added, using default filter chain");
-        filterChain->addFilter(make_unique<DefaultFilter>());
-        filterChain->addFilter(make_unique<DefaultFilterX>());
-    }
-
-    auto dispatcher = make_unique<MessageDispatcher>(move(eventRegistry));
-    auto mp = make_unique<MessageProcessor>(move(dispatcher), move(filterChain), move(parser));
-
-    return unique_ptr<Server>(new Server(port, workerCount, move(tp), move(mp)));
+    return unique_ptr<Server>(new Server(port, workerCount, move(tp), move(md)));
 }
 
 // Server 생성자
-Server::Server(int port, int workerCount, unique_ptr<ThreadPool> tp, unique_ptr<MessageProcessor> mp)
-    : port(port), workerCount(workerCount), threadPool(move(tp)), messageProcessor(move(mp)) {
+Server::Server(int port, int workerCount, unique_ptr<ThreadPool> tp, unique_ptr<MessageDispatcher> md)
+    : port(port), workerCount(workerCount), threadPool(move(tp)), messageDispatcher(move(md)) {
     initialize();
 }
 
 // Server 초기화
 void Server::initialize() {
-    reactor = make_unique<Reactor>(port, *threadPool, *messageProcessor);
-    Logger::debug("Server instance created with port " + to_string(port));
+    reactor = make_unique<Reactor>(port, *threadPool, *messageDispatcher);
+    Logger::debug("Server instance created with port");
 }
 
 Server::~Server() {
