@@ -6,22 +6,25 @@
 #include "EventRegistry.h"
 #include "DefaultFilter.h"
 #include "DefaultFilterX.h"
+#include "ReactorFactory.h"
 
 using namespace std;
 
 void Server::Builder::validate() const {
     if (port <= 0) {
-        Logger::error("Port must be greater than 0");
-        throw invalid_argument("Port must be greater than 0");
+        throwError("Port must be greater than 0");
     }
     if (workerCount <= 0) {
-        Logger::error("Worker count must be greater than 0");
-        throw invalid_argument("Worker count must be greater than 0");
+        throwError("Worker count must be greater than 0");
     }
     if (messageDispatcherType.empty()) {
-        Logger::error("Message dispatcher type must be set");
-        throw invalid_argument("Message dispatcher type must be set");
+        throwError("Message dispatcher type must be set");
     }
+}
+
+void Server::Builder::throwError(const std::string& msg) const {
+    Logger::error(msg);
+    throw std::invalid_argument(msg);
 }
 
 Server::Builder& Server::Builder::setPort(int p) {
@@ -39,6 +42,16 @@ Server::Builder& Server::Builder::setWorkerCount(int count) {
         throw invalid_argument("Worker count must be greater than 0");
     }
     workerCount = count;
+    return *this;
+}
+
+Server::Builder& Server::Builder::setTransportProtocol(const std::string& pt) {
+    try {
+        protocol = fromString(pt);
+    } catch (const std::invalid_argument& e) {
+        Logger::error(e.what());
+        throw;
+    }
     return *this;
 }
 
@@ -77,19 +90,19 @@ unique_ptr<Server> Server::Builder::build() {
     auto dispatcher = make_unique<MessageDispatcher>(move(eventRegistry));
     auto mp = make_unique<MessageProcessor>(move(dispatcher), move(filterChain), move(parser));
 
-    return unique_ptr<Server>(new Server(port, workerCount, move(tp), move(mp)));
+    return unique_ptr<Server>(new Server(port, workerCount, protocol, move(tp), move(mp)));
 }
 
 // Server 생성자
-Server::Server(int port, int workerCount, unique_ptr<ThreadPool> tp, unique_ptr<MessageProcessor> mp)
-    : port(port), workerCount(workerCount), threadPool(move(tp)), messageProcessor(move(mp)) {
+Server::Server(int port, int workerCount, TransportProtocol protocol, unique_ptr<ThreadPool> tp, unique_ptr<MessageProcessor> mp)
+    : port(port), workerCount(workerCount), protocol(protocol), threadPool(move(tp)), messageProcessor(move(mp)) {
     initialize();
 }
 
 // Server 초기화
 void Server::initialize() {
-    reactor = make_unique<Reactor>(port, *threadPool, *messageProcessor);
-    Logger::debug("Server instance created with port " + to_string(port));
+    reactor = ReactorFactory::createReactor(protocol, port, *threadPool, *messageProcessor);
+    Logger::debug("Server instance created with port " + to_string(port) + " and protocol " + toString(protocol));
 }
 
 Server::~Server() {
