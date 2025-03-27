@@ -16,3 +16,6 @@
 
 # External libraries
 /external/*
+
+*.ini
+*.exe

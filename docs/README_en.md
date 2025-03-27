@@ -1,168 +1,246 @@
-![소캣 서버 아키택쳐-페이지-3 drawio (1)](https://github.com/user-attachments/assets/d7dcb3db-2a14-46c4-9a90-3bcb58166379)
+![Socket Server Architecture](https://github.com/user-attachments/assets/d7dcb3db-2a14-46c4-9a90-3bcb58166379)
 
 🇺🇸 English /
 🇰🇷 [한국어](https://github.com/ImGdevel/Socket-Server-Framework/blob/main/docs/README_kr.md) /
 🇨🇳 [中文](https://github.com/ImGdevel/Socket-Server-Framework/blob/main/docs/README_cn.md) /
 🇪🇸 [Español](https://github.com/ImGdevel/Socket-Server-Framework/blob/main/docs/README_es.md)
 
-### This project is a socket server framework based on the Reactor-Worker pattern, utilizing epoll-based asynchronous I/O and a thread pool architecture. With minimal configuration, it can be used for chat servers, game servers, distributed systems, and more.
+# Socket Server Framework
 
-> ### Key Objectives
-> - **High Performance & Scalability** – Handles tens of thousands of concurrent connections efficiently using epoll-based asynchronous I/O and a thread pool.
-> - **Modular Design** – Supports database integration, multi-reactor patterns, and various API and message formats (JSON, Protobuf, etc.).
-> - **Optimized for Game Servers** – Supports both TCP and UDP, low-latency packet processing, and custom protocol extensions.
-> - **Production-Ready** – Designed for real-world deployment, not just a simple demonstration project.
+This project is a **high-performance socket server framework** implementing the **Reactor-Worker pattern** with **epoll-based asynchronous I/O** and **thread pool architecture**. The framework provides a modular foundation for building scalable network applications such as chat servers, game servers, and distributed systems.
 
-This project aims to be a general-purpose network server framework, not just a simple socket server, enabling real-time applications like games and other services.
+## Core Design Principles
 
-<br>
+- **Event-Driven Architecture** – Built on the Reactor pattern for efficient I/O multiplexing
+- **Asynchronous Processing** – Non-blocking I/O operations with thread pool-based message processing  
+- **Protocol Flexibility** – Support for both TCP and UDP transport protocols
+- **Message Format Agnostic** – Pluggable parsers for JSON, Protobuf, and custom formats
+- **Production-Ready** – Comprehensive error handling, logging, and resource management
 
---- 
+## Technical Architecture
 
-## 🛠 Technology Stack
-- **Reactor Pattern (I/O Multiplexing, Non-blocking I/O)**
-- **Asynchronous Processing with Message Queue**
-- **Extensible Event Handler (Supports Custom Event Processing)**
-- **Message Preprocessing with Filter Chain (Supports Custom Filters)**
-- **Integration with Redis, Database, and Message Broker**
+![Server Architecture Diagram](https://github.com/user-attachments/assets/bc8727bb-dbf8-4433-9099-5108b600afbf)
 
-<br>
+### Key Components
 
+**Reactor Layer**
+- `ReactorTCP` and `ReactorUDP` implementations for protocol-specific event handling
+- epoll-based I/O multiplexing for efficient connection management
+- Non-blocking socket operations with event notification
 
-## 📂 Server Architecture
+**Session Management**
+- `ClientSessionTCP` and `ClientSessionUDP` for connection state management
+- Protocol-specific session lifecycle handling
+- Resource cleanup and connection tracking
 
-![소캣 서버 아키택쳐-페이지-2 drawio](https://github.com/user-attachments/assets/bc8727bb-dbf8-4433-9099-5108b600afbf)
+**Message Processing Pipeline**
+- `FilterChain` for request preprocessing and validation
+- `MessageDispatcher` for routing messages to appropriate handlers
+- `EventRegistry` for dynamic handler registration
 
-- **Client → Load Balancer**  
-   - The load balancer distributes multiple client requests to the `Reactor`.
+**Threading Model**
+- `ThreadPool` implementation for scalable worker management
+- Producer-consumer pattern with message queues
+- Configurable worker thread count
 
-- **Reactor (Producer) → Message Queue**  
-   - The `Reactor` asynchronously processes client requests and stores them in the message queue.
-- **Message Queue → Worker (Consumer)**  
-   - The `Worker` retrieves messages from the queue and processes them.
-   - Message preprocessing is done via `FilterChain`.
-- **Message Dispatcher → Event Handler**  
-   - Messages are forwarded to the appropriate handler for final processing.
-   - Interacts with `Redis`, `Database`, and `MessageBroker`.
+## Technology Stack
 
+- **Language**: C++17
+- **I/O Model**: epoll (Linux)
+- **Concurrency**: Thread pool with message queues
+- **Message Formats**: JSON (RapidJSON), Protocol Buffers
+- **External Dependencies**: Redis (hiredis), MySQL, Google Test
+- **Build System**: GNU Make with automated dependency management
 
-<br>
+---
 
---- 
+## Getting Started
 
-## 🏗️ Getting Started
+### Prerequisites
 
-### 1️⃣ Install Required Packages
-```sh
+```bash
 sudo apt update
 sudo apt install -y g++ cmake make
 ```
 
-### 2️⃣ Clone and Build the Project
-```sh
-git clone https://github.com/your-repo/socket-server-framework.git
+### Build and Run
+
+```bash
+git clone <repository-url>
 cd socket-server-framework
-make
+make download  # Install dependencies
+make           # Build the project
+./build/server # Run the server
 ```
 
-### 3️⃣ Run the Server
-```sh
-./build/server
-```
+The server starts with the default configuration from `ServerConfig` and uses the `TestJSONEventHandler`.
 
-<br>
+---
 
+## Custom Implementation
 
-## 🛠️ Custom Server Configuration
+### 1. Define Event Handler
 
-### 1️⃣ Define an Event Handler
 ```cpp
-// CustomEventHandler.h
 #include "IEventHandler.h"
 #include "ClientRequest.h"
 #include "Logger.h"
-#include <unordered_map>
 
 class CustomEventHandler : public IEventHandler {
 public:
     std::unordered_map<std::string, HandlerFunc> createHandlers() const override {
         return {
-            {"LOGIN", [this](const ClientRequest& request) { this->onLogin(request); }}
+            {"LOGIN", [this](const ClientRequest& request) { handleLogin(request); }},
+            {"MESSAGE", [this](const ClientRequest& request) { handleMessage(request); }}
         };
     }
 
 private:
-    void onLogin(const ClientRequest& request) {
-        Logger::info("Login: " + request.toString());
+    void handleLogin(const ClientRequest& request) {
+        Logger::info("User login: " + request.toString());
+        // Implementation logic
+    }
+    
+    void handleMessage(const ClientRequest& request) {
+        Logger::info("Message received: " + request.toString());
+        // Implementation logic
     }
 };
 ```
 
-### 2️⃣ Configure and Run the Server
+### 2. Configure Server
+
 ```cpp
-// main.cpp
 #include "Server.h"
 #include "CustomEventHandler.h"
 
 int main() {
-   CustomEventHandler handler;
-   auto server = Server::Builder()
-       .setPort(9090)
-       .setWorkerCount(8)
-       .setEventHandler(handler)
-       .setMessageType("json")
-       .build();
+    CustomEventHandler handler;
+    
+    auto server = Server::Builder()
+        .setPort(9090)
+        .setWorkerCount(4)
+        .setTransportProtocol("TCP")  // or "UDP"
+        .setMessageType("json-rapid") // or "json", "protobuf"
+        .setEventHandler(handler)
+        .build();
+    
     server->run();
+    return 0;
 }
 ```
 
-### 3️⃣ Build & Run
-```sh
+### 3. Custom Filters
+
+```cpp
+#include "IFilter.h"
+
+class AuthenticationFilter : public IFilter {
+public:
+    bool process(ClientRequest& request) override {
+        // Authentication logic
+        return true; // Continue processing
+    }
+};
+
+// Add to server
+.addFilter(std::make_unique<AuthenticationFilter>())
+```
+
+---
+
+## Docker Deployment
+
+### Build Container
+
+```bash
+# Build the project first
 make
-./build/server
+
+# Build Docker image
+docker build -t socket-server-framework .
 ```
 
-<br>
+### Run Container
 
-
-## 🐳 Running with Docker
-
-### 1️⃣ Build Docker Image
-```sh
-docker build -t socket-server .
+```bash
+docker run --rm -p 8080:8080 socket-server-framework
 ```
 
-### 2️⃣ Run Container
-```sh
-docker run --rm -p 8080:8080 socket-server
-```
-By default, the server runs on **port 8080**. You can modify it using `-p <host_port>:<container_port>`.
+---
 
-## 🔧 Additional Commands
-```sh
-make download  # Install dependencies
-make test      # Run tests
-make clean     # Remove build files
-make clean-all # Remove build files and dependencies
+## Available Commands
+
+```bash
+make download   # Download and build external dependencies
+make            # Build the server executable
+make test       # Run unit tests
+make clean      # Remove build artifacts
+make clean-all  # Remove build artifacts and dependencies
 ```
 
-<br>
+---
 
---- 
+## Project Structure
 
-## 📜 License
+```
+src/
+├── main.cpp                    # Application entry point
+├── server/
+│   ├── Server.h/.cpp          # Main server class with Builder pattern
+│   ├── ServerConfig.h/.cpp    # Configuration management
+│   ├── reactor/               # Event loop implementations
+│   │   ├── Reactor.h          # Abstract reactor interface
+│   │   ├── ReactorTCP.cpp     # TCP-specific reactor
+│   │   └── ReactorUDP.cpp     # UDP-specific reactor
+│   ├── session/               # Connection management
+│   │   ├── ClientSessionTCP.cpp
+│   │   └── ClientSessionUDP.cpp
+│   ├── threadpool/            # Worker thread management
+│   ├── dispatcher/            # Message routing
+│   ├── filter/                # Request preprocessing
+│   ├── handler/               # Event handlers
+│   └── messages/              # Message parsing
+└── utils/                     # Utility functions
+```
 
-This project follows an open-source license.
+---
 
-- **Educational Use**: Completely free
-- **Personal & Small Startup Use**: MIT License applies
-- **Enterprise & Commercial Use**: Requires separate permission
+## Testing
 
-Refer to the LICENSE file for more details.
+The project includes comprehensive unit tests using Google Test framework:
 
-## 📜 Contributing
+```bash
+make test
+```
 
-We welcome PRs to improve the project!
-For inquiries and suggestions, please visit [GitHub Issues](https://github.com/your-repo/socket-server-framework/issues).
-'''
+Test coverage includes:
+- Server initialization and configuration
+- Worker queue operations
+- Client session management
+- Filter chain processing
 
+---
+
+## License
+
+This project is available under multiple licensing options:
+
+- **Educational Use**: Free for learning and educational purposes
+- **Personal & Small Projects**: MIT License
+- **Enterprise & Commercial**: Requires separate licensing agreement
+
+See the LICENSE file for detailed terms.
+
+---
+
+## Contributing
+
+We welcome contributions to improve the framework:
+
+1. Fork the repository
+2. Create a feature branch
+3. Implement changes with appropriate tests
+4. Submit a pull request
+
+For bug reports and feature requests, please use [GitHub Issues](https://github.com/ImGdevel/Socket-Server-Framework/issues).
